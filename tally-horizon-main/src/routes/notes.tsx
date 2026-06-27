@@ -1,325 +1,249 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AppShell, PageHeader } from "@/components/AppShell";
-import { 
-  FileText, Plus, Search, Filter, Star, Clock, Tag, 
-  BookOpen, Calculator, FileSpreadsheet, Briefcase, Download,
-  Eye, Edit, Trash2, Share2, Pin, MoreVertical
-} from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { Search, BookOpen, Clock, Tag, ChevronRight, Pin, Star, FileText, Calculator, FileSpreadsheet, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/notes")({
   head: () => ({
     meta: [
       { title: "Notes — Tally Accounting Hub Pro" },
-      { name: "description", content: "Your personal notes library for accounting, Tally, GST, and business topics." },
+      { name: "description", content: "Your personal study notes library." },
     ],
   }),
   component: Notes,
 });
 
-const noteCategories = [
-  { id: "all", label: "All Notes", icon: FileText, count: 24, color: "gradient-hero" },
-  { id: "accounting", label: "Accounting", icon: Calculator, count: 8, color: "gradient-saffron" },
-  { id: "tally", label: "Tally Prime", icon: BookOpen, count: 10, color: "gradient-royal" },
-  { id: "gst", label: "GST & Tax", icon: FileSpreadsheet, count: 4, color: "gradient-gold" },
-  { id: "business", label: "Business", icon: Briefcase, count: 2, color: "gradient-hero" },
-];
-
-const notesData = [
+export const notesData = [
   {
     id: 1,
     title: "GST Return Filing Process",
     category: "gst",
-    excerpt: "Step-by-step guide for filing GSTR-1, GSTR-3B monthly returns with reconciliation tips...",
+    categoryLabel: "GST & Tax",
+    description: "Step-by-step guide for filing GSTR-1, GSTR-3B monthly returns with reconciliation tips and deadline reminders.",
     date: "2 days ago",
+    readTime: "5 min read",
     isPinned: true,
     isFavorite: true,
     tags: ["GST", "Returns", "Filing"],
-    color: "border-l-[#FF9933]",
+    accentColor: "#FF9933",
   },
   {
     id: 2,
     title: "Tally Keyboard Shortcuts",
     category: "tally",
-    excerpt: "Essential shortcuts: Alt+G (Go To), Alt+C (Create), Alt+D (Delete), Alt+P (Print)...",
+    categoryLabel: "Tally Prime",
+    description: "Essential shortcuts: Alt+G (Go To), Alt+C (Create), Alt+D (Delete), Alt+P (Print) and 30+ more productivity shortcuts.",
     date: "3 days ago",
+    readTime: "3 min read",
     isPinned: true,
     isFavorite: false,
     tags: ["Tally", "Shortcuts", "Productivity"],
-    color: "border-l-[#4169E1]",
+    accentColor: "#4169E1",
   },
   {
     id: 3,
-    title: "Balance Sheet Format",
+    title: "Balance Sheet Learning Guide",
     category: "accounting",
-    excerpt: "Assets = Liabilities + Capital. Current assets, fixed assets, provisions, reserves...",
+    categoryLabel: "Accounting",
+    description: "Assets = Liabilities + Capital. A complete guide to understanding balance sheet structure, assets, liabilities, and capital with worked examples.",
     date: "5 days ago",
+    readTime: "8 min read",
     isPinned: false,
     isFavorite: true,
-    tags: ["Accounting", "Financial Statements"],
-    color: "border-l-[#FFD700]",
+    tags: ["Accounting", "Financial Statements", "Balance Sheet"],
+    accentColor: "#FFD700",
   },
   {
     id: 4,
     title: "Journal Entry Rules",
     category: "accounting",
-    excerpt: "Debit what comes in, Credit what goes out. Debit all expenses and losses...",
+    categoryLabel: "Accounting",
+    description: "Debit what comes in, Credit what goes out. Debit all expenses and losses, Credit all incomes and gains — with real examples.",
     date: "1 week ago",
+    readTime: "4 min read",
     isPinned: false,
     isFavorite: false,
     tags: ["Accounting", "Basics", "Journal"],
-    color: "border-l-[#FF9933]",
+    accentColor: "#FF9933",
   },
   {
     id: 5,
     title: "Tally Prime Multi-Currency Setup",
     category: "tally",
-    excerpt: "Enable multi-currency in F11 features. Configure exchange rates. Handle forex transactions...",
+    categoryLabel: "Tally Prime",
+    description: "Enable multi-currency in F11 features. Configure exchange rates and handle forex transactions in Tally Prime.",
     date: "1 week ago",
+    readTime: "6 min read",
     isPinned: false,
     isFavorite: false,
     tags: ["Tally", "Multi-Currency", "Advanced"],
-    color: "border-l-[#4169E1]",
+    accentColor: "#4169E1",
   },
   {
     id: 6,
     title: "Business Model Canvas",
     category: "business",
-    excerpt: "Key partners, activities, resources. Value proposition, customer relationships, segments...",
+    categoryLabel: "Business",
+    description: "Key partners, activities, resources. Value proposition, customer relationships, segments, revenue streams and cost structure.",
     date: "2 weeks ago",
+    readTime: "7 min read",
     isPinned: false,
     isFavorite: true,
     tags: ["Business", "Strategy", "Planning"],
-    color: "border-l-[#DC143C]",
+    accentColor: "#DC143C",
   },
 ];
 
-function Notes() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+const categories = [
+  { id: "all",        label: "All",        icon: FileText },
+  { id: "accounting", label: "Accounting", icon: Calculator },
+  { id: "tally",      label: "Tally",      icon: BookOpen },
+  { id: "gst",        label: "GST & Tax",  icon: FileSpreadsheet },
+  { id: "business",   label: "Business",   icon: Briefcase },
+];
 
-  const filteredNotes = notesData.filter((note) => {
-    const matchesCategory = selectedCategory === "all" || note.category === selectedCategory;
-    const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         note.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+function Notes() {
+  const navigate = useNavigate();
+  const [search, setSearch]       = useState("");
+  const [category, setCategory]   = useState("all");
+
+  const filtered = notesData.filter(n => {
+    const matchCat  = category === "all" || n.category === category;
+    const matchText = n.title.toLowerCase().includes(search.toLowerCase()) ||
+                      n.description.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchText;
   });
 
-  const pinnedNotes = filteredNotes.filter(n => n.isPinned);
-  const regularNotes = filteredNotes.filter(n => !n.isPinned);
+  const pinned  = filtered.filter(n => n.isPinned);
+  const regular = filtered.filter(n => !n.isPinned);
 
   return (
     <AppShell>
-      <div className="pt-20 pb-6">
-        <PageHeader 
-          eyebrow="Your Knowledge Base" 
-          title="Notes" 
-          subtitle="Organize and access your study notes anytime"
-        />
+      <div className="pt-20 pb-24 px-4 max-w-2xl mx-auto">
 
-        {/* Stats Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
-        >
-          <div className="glass rounded-2xl px-4 py-3 min-w-[120px]">
-            <p className="text-2xl font-black text-gradient">{notesData.length}</p>
-            <p className="text-xs text-muted-foreground">Total Notes</p>
-          </div>
-          <div className="glass rounded-2xl px-4 py-3 min-w-[120px]">
-            <p className="text-2xl font-black text-primary">{notesData.filter(n => n.isPinned).length}</p>
-            <p className="text-xs text-muted-foreground">Pinned</p>
-          </div>
-          <div className="glass rounded-2xl px-4 py-3 min-w-[120px]">
-            <p className="text-2xl font-black text-saffron">{notesData.filter(n => n.isFavorite).length}</p>
-            <p className="text-xs text-muted-foreground">Favorites</p>
-          </div>
-        </motion.div>
-
-        {/* Search and Create */}
-        <div className="mb-6 flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pl-12 pr-4 rounded-2xl glass border-0 focus:ring-2 focus:ring-primary transition-all"
-            />
-          </div>
-          <button className="h-12 w-12 rounded-2xl gradient-saffron text-white flex items-center justify-center shadow-glow hover:shadow-elegant transition-all">
-            <Plus className="h-6 w-6" />
-          </button>
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Your Knowledge Base</p>
+          <h1 className="text-3xl font-black mb-1">Study Notes</h1>
+          <p className="text-sm text-muted-foreground">Tap any note to open the full document reader</p>
         </div>
 
-        {/* Category Filter */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {noteCategories.map((cat) => {
+        {/* Search */}
+        <div className="relative mb-5">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search notes..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full h-11 pl-11 pr-4 rounded-2xl glass border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm transition-all"
+          />
+        </div>
+
+        {/* Category pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-7 scrollbar-hide">
+          {categories.map(cat => {
             const Icon = cat.icon;
             return (
-              <motion.button
+              <button
                 key={cat.id}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
-                  selectedCategory === cat.id
-                    ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-2 border-primary"
-                    : "glass hover:bg-accent"
+                onClick={() => setCategory(cat.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+                  category === cat.id
+                    ? "bg-primary text-white border-primary shadow-glow"
+                    : "glass border-border hover:border-primary/40"
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {cat.label}
-                <span className="text-xs opacity-70">({cat.count})</span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
 
-        {/* Pinned Notes Section */}
-        {pinnedNotes.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Pin className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-black uppercase tracking-wide text-primary">Pinned Notes</h3>
+        {/* Pinned */}
+        {pinned.length > 0 && (
+          <section className="mb-7">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Pin className="h-3.5 w-3.5 text-primary fill-primary" />
+              <span className="text-xs font-black uppercase tracking-widest text-primary">Pinned</span>
             </div>
-            <div className="space-y-3">
-              {pinnedNotes.map((note, idx) => (
-                <NoteCard key={note.id} note={note} index={idx} />
+            <div className="space-y-2">
+              {pinned.map(note => (
+                <NoteRow key={note.id} note={note} onOpen={() => navigate({ to: "/note/$noteId", params: { noteId: String(note.id) } })} />
               ))}
             </div>
+          </section>
+        )}
+
+        {/* All Notes */}
+        {regular.length > 0 && (
+          <section>
+            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-3">
+              {category === "all" ? `All Notes (${regular.length})` : `${categories.find(c=>c.id===category)?.label} (${regular.length})`}
+            </span>
+            <div className="space-y-2">
+              {regular.map(note => (
+                <NoteRow key={note.id} note={note} onOpen={() => navigate({ to: "/note/$noteId", params: { noteId: String(note.id) } })} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {filtered.length === 0 && (
+          <div className="text-center py-20">
+            <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-30" />
+            <p className="text-sm font-bold text-muted-foreground">No notes found</p>
           </div>
         )}
 
-        {/* Regular Notes */}
-        {regularNotes.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-black uppercase tracking-wide text-muted-foreground">
-                All Notes ({regularNotes.length})
-              </h3>
-            </div>
-            <div className="space-y-3">
-              {regularNotes.map((note, idx) => (
-                <NoteCard key={note.id} note={note} index={idx + pinnedNotes.length} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {filteredNotes.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16 glass rounded-3xl"
-          >
-            <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-bold mb-2">No notes found</h3>
-            <p className="text-sm text-muted-foreground mb-6">Try adjusting your search or filter</p>
-            <button className="px-6 py-3 rounded-xl gradient-saffron text-white font-bold shadow-glow">
-              Create New Note
-            </button>
-          </motion.div>
-        )}
       </div>
     </AppShell>
   );
 }
 
-function NoteCard({ note, index }: { note: typeof notesData[0]; index: number }) {
-  const [showMenu, setShowMenu] = useState(false);
-
+function NoteRow({ note, onOpen }: { note: typeof notesData[0]; onOpen: () => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className={`relative glass rounded-2xl p-5 shadow-card hover:shadow-elegant transition-all border-l-4 ${note.color}`}
+    <div
+      className="relative flex items-center gap-4 px-4 py-4 rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-card transition-all group cursor-pointer"
+      style={{ borderLeftWidth: "4px", borderLeftColor: note.accentColor }}
+      onClick={onOpen}
     >
-      {/* Note Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            {note.isPinned && <Pin className="h-4 w-4 text-primary fill-primary" />}
-            <h3 className="text-base font-bold truncate">{note.title}</h3>
-          </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-2">
-            <Clock className="h-3 w-3" />
-            {note.date}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          {note.isFavorite && (
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-          )}
-          <button 
-            onClick={() => setShowMenu(!showMenu)}
-            className="h-8 w-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors"
-          >
-            <MoreVertical className="h-4 w-4" />
-          </button>
-        </div>
+      {/* Coloured initial icon */}
+      <div
+        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white text-base font-black"
+        style={{ background: `linear-gradient(135deg, ${note.accentColor}cc, ${note.accentColor}88)` }}
+      >
+        {note.title.charAt(0)}
       </div>
 
-      {/* Dropdown Menu */}
-      {showMenu && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute right-5 top-14 w-48 glass rounded-xl shadow-elegant p-2 z-10"
+      {/* Text content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          {note.isFavorite && <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+          <span className="text-sm font-bold truncate">{note.title}</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{note.readTime}</span>
+          <span className="flex items-center gap-1"><Tag className="h-3 w-3" />{note.categoryLabel}</span>
+          <span>{note.date}</span>
+        </div>
+        {/* View Note button */}
+        <button
+          onClick={e => { e.stopPropagation(); onOpen(); }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+          style={{
+            background: `linear-gradient(135deg, ${note.accentColor}22, ${note.accentColor}11)`,
+            color: note.accentColor,
+            border: `1px solid ${note.accentColor}44`,
+          }}
         >
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-semibold">
-            <Eye className="h-4 w-4" /> View
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-semibold">
-            <Edit className="h-4 w-4" /> Edit
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-semibold">
-            <Share2 className="h-4 w-4" /> Share
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-semibold">
-            <Download className="h-4 w-4" /> Download
-          </button>
-          <div className="h-px bg-border my-2" />
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-semibold text-destructive">
-            <Trash2 className="h-4 w-4" /> Delete
-          </button>
-        </motion.div>
-      )}
-
-      {/* Note Excerpt */}
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-        {note.excerpt}
-      </p>
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {note.tags.map((tag) => (
-          <span 
-            key={tag} 
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary text-xs font-semibold"
-          >
-            <Tag className="h-3 w-3" />
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Link to={`/notes/${note.id}`} className="flex-1">
-          <button className="w-full py-2.5 rounded-xl glass hover:bg-accent transition-colors text-sm font-bold">
-            View Note
-          </button>
-        </Link>
-        <button className="px-4 py-2.5 rounded-xl gradient-saffron text-white font-bold shadow-glow hover:shadow-elegant transition-all">
-          Edit
+          View Note <ChevronRight className="h-3 w-3" />
         </button>
       </div>
-    </motion.div>
+
+      {/* Right arrow */}
+      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+    </div>
   );
 }

@@ -15,8 +15,9 @@ import { Route as LearnRouteImport } from './routes/learn'
 import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BalanceSheetRouteImport } from './routes/balance-sheet'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
+import { Route as NoteNoteIdRouteImport } from './routes/note.$noteId'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -48,89 +49,102 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BalanceSheetRoute = BalanceSheetRouteImport.update({
+  id: '/balance-sheet',
+  path: '/balance-sheet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
-  id: '/$noteId',
-  path: '/$noteId',
-  getParentRoute: () => NotesRoute,
+const NoteNoteIdRoute = NoteNoteIdRouteImport.update({
+  id: '/note/$noteId',
+  path: '/note/$noteId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
-  '/notes': typeof NotesRouteWithChildren
+  '/notes': typeof NotesRoute
   '/sports': typeof SportsRoute
-  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/note/$noteId': typeof NoteNoteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
-  '/notes': typeof NotesRouteWithChildren
+  '/notes': typeof NotesRoute
   '/sports': typeof SportsRoute
-  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/note/$noteId': typeof NoteNoteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
-  '/notes': typeof NotesRouteWithChildren
+  '/notes': typeof NotesRoute
   '/sports': typeof SportsRoute
-  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/note/$noteId': typeof NoteNoteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
     | '/learn'
     | '/notes'
     | '/sports'
-    | '/notes/$noteId'
+    | '/note/$noteId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
     | '/learn'
     | '/notes'
     | '/sports'
-    | '/notes/$noteId'
+    | '/note/$noteId'
   id:
     | '__root__'
     | '/'
+    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
     | '/learn'
     | '/notes'
     | '/sports'
-    | '/notes/$noteId'
+    | '/note/$noteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BalanceSheetRoute: typeof BalanceSheetRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   EntertainmentRoute: typeof EntertainmentRoute
   LearnRoute: typeof LearnRoute
-  NotesRoute: typeof NotesRouteWithChildren
+  NotesRoute: typeof NotesRoute
   SportsRoute: typeof SportsRoute
+  NoteNoteIdRoute: typeof NoteNoteIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -177,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/balance-sheet': {
+      id: '/balance-sheet'
+      path: '/balance-sheet'
+      fullPath: '/balance-sheet'
+      preLoaderRoute: typeof BalanceSheetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -184,34 +205,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/notes/$noteId': {
-      id: '/notes/$noteId'
-      path: '/$noteId'
-      fullPath: '/notes/$noteId'
-      preLoaderRoute: typeof NotesNoteIdRouteImport
-      parentRoute: typeof NotesRoute
+    '/note/$noteId': {
+      id: '/note/$noteId'
+      path: '/note/$noteId'
+      fullPath: '/note/$noteId'
+      preLoaderRoute: typeof NoteNoteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface NotesRouteChildren {
-  NotesNoteIdRoute: typeof NotesNoteIdRoute
-}
-
-const NotesRouteChildren: NotesRouteChildren = {
-  NotesNoteIdRoute: NotesNoteIdRoute,
-}
-
-const NotesRouteWithChildren = NotesRoute._addFileChildren(NotesRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BalanceSheetRoute: BalanceSheetRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   EntertainmentRoute: EntertainmentRoute,
   LearnRoute: LearnRoute,
-  NotesRoute: NotesRouteWithChildren,
+  NotesRoute: NotesRoute,
   SportsRoute: SportsRoute,
+  NoteNoteIdRoute: NoteNoteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
