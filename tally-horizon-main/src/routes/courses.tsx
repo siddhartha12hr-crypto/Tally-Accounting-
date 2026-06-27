@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
-import { Star, Clock, Users, BookOpen } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Star, Clock, Users, BookOpen, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
@@ -18,6 +20,23 @@ const palettes = ["gradient-saffron", "gradient-royal", "gradient-hero", "gradie
 
 function Courses() {
   const { courses } = useData();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleEnroll = (courseId: string, price: string) => {
+    const isFree = price === "Free" || price === "₹0";
+    
+    if (!isFree && !isAuthenticated) {
+      toast.info("Please login to access this premium course");
+      navigate({ 
+        to: "/login",
+        search: { redirect: `/watch/${courseId}` }
+      });
+      return;
+    }
+    
+    navigate({ to: `/watch/${courseId}` });
+  };
   
   return (
     <AppShell>
@@ -46,7 +65,10 @@ function Courses() {
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {course.rating}
               </div>
               {/* Price Badge */}
-              <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg">
+              <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg flex items-center gap-1">
+                {course.price !== "Free" && course.price !== "₹0" && !isAuthenticated && (
+                  <Lock className="h-3 w-3" />
+                )}
                 {course.price}
               </div>
             </div>
@@ -79,8 +101,15 @@ function Courses() {
               </div>
               
               {/* Enroll Button */}
-              <button className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow">
-                {course.price === "Free" || course.price === "₹0" ? "Start Learning Free" : "Enroll Now"}
+              <button 
+                onClick={() => handleEnroll(course.id, course.price)}
+                className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow"
+              >
+                {course.price === "Free" || course.price === "₹0" 
+                  ? "Start Learning Free" 
+                  : isAuthenticated 
+                  ? "Enroll Now" 
+                  : "Login to Enroll"}
               </button>
             </div>
           </motion.article>

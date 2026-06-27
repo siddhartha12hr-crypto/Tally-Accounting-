@@ -1,8 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
-import { Mail, MessageCircle, Send, Instagram, Facebook, Youtube, Twitter, ChevronDown } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { 
+  Mail, 
+  MessageCircle, 
+  Send, 
+  Instagram, 
+  Facebook, 
+  Youtube, 
+  Twitter, 
+  ChevronDown,
+  LogOut,
+  User,
+  ShoppingBag,
+  Settings,
+  Crown
+} from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({ meta: [{ title: "Contact — Tally Accounting Hub Pro" }] }),
@@ -18,9 +35,105 @@ const faqs = [
 
 function Contact() {
   const [open, setOpen] = useState<number | null>(0);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    navigate({ to: "/" });
+  };
+
+  const handleLogin = () => {
+    navigate({ to: "/login" });
+  };
+
   return (
     <AppShell>
-      <PageHeader eyebrow="Contact" title="Get in touch" subtitle="We'd love to hear from you. Drop a message or reach us directly." />
+      <PageHeader 
+        eyebrow={isAuthenticated ? "Profile" : "Contact"} 
+        title={isAuthenticated ? `Welcome, ${user?.name || 'User'}` : "Get in touch"} 
+        subtitle={isAuthenticated ? "Manage your account and preferences" : "We'd love to hear from you. Drop a message or reach us directly."} 
+      />
+
+      {/* User Profile Section (if logged in) */}
+      {isAuthenticated && user && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl glass p-6 shadow-card mb-4"
+        >
+          {/* User Info */}
+          <div className="flex items-start gap-4 mb-6">
+            <div className="h-16 w-16 rounded-full gradient-hero flex items-center justify-center text-white text-2xl font-black shrink-0">
+              {user.name[0].toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-black">{user.name}</h3>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                <Crown className="h-3 w-3" />
+                Premium Member
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="rounded-xl glass p-4 border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingBag className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground font-semibold">Purchased</p>
+              </div>
+              <p className="text-2xl font-black">
+                {(user.purchasedCourses?.length || 0) + (user.purchasedVideos?.length || 0)}
+              </p>
+              <p className="text-xs text-muted-foreground">Total Items</p>
+            </div>
+            <div className="rounded-xl glass p-4 border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Settings className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground font-semibold">Account</p>
+              </div>
+              <p className="text-2xl font-black">Active</p>
+              <p className="text-xs text-muted-foreground">Status</p>
+            </div>
+          </div>
+
+          {/* Logout Button */}
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="w-full rounded-xl font-bold text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Login Prompt (if not logged in) */}
+      {!isAuthenticated && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl glass p-6 shadow-card mb-4 text-center"
+        >
+          <div className="h-16 w-16 rounded-full gradient-hero flex items-center justify-center text-white mx-auto mb-4">
+            <User className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-black mb-2">Not Logged In</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Login to access your profile and purchased content
+          </p>
+          <Button
+            onClick={handleLogin}
+            className="rounded-xl gradient-hero text-white shadow-glow font-bold"
+          >
+            Login Now
+          </Button>
+        </motion.div>
+      )}
 
       <form
         onSubmit={(e) => { e.preventDefault(); alert("Message sent! 🙏"); }}

@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SportsRouteImport } from './routes/sports'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NotesRouteImport } from './routes/notes'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as CoursesRouteImport } from './routes/courses'
@@ -18,6 +20,8 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BalanceSheetRouteImport } from './routes/balance-sheet'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
+import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NoteNoteIdRouteImport } from './routes/note.$noteId'
 
 const SportsRoute = SportsRouteImport.update({
@@ -25,9 +29,19 @@ const SportsRoute = SportsRouteImport.update({
   path: '/sports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotesRoute = NotesRouteImport.update({
   id: '/notes',
   path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnRoute = LearnRouteImport.update({
@@ -65,6 +79,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WatchVideoIdRoute = WatchVideoIdRouteImport.update({
+  id: '/watch/$videoId',
+  path: '/watch/$videoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentContentIdRoute = PaymentContentIdRouteImport.update({
+  id: '/payment/$contentId',
+  path: '/payment/$contentId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoteNoteIdRoute = NoteNoteIdRouteImport.update({
   id: '/note/$noteId',
   path: '/note/$noteId',
@@ -79,9 +103,13 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/notes': typeof NotesRoute
+  '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/note/$noteId': typeof NoteNoteIdRoute
+  '/payment/$contentId': typeof PaymentContentIdRoute
+  '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,9 +119,13 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/notes': typeof NotesRoute
+  '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/note/$noteId': typeof NoteNoteIdRoute
+  '/payment/$contentId': typeof PaymentContentIdRoute
+  '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,9 +136,13 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/notes': typeof NotesRoute
+  '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/note/$noteId': typeof NoteNoteIdRoute
+  '/payment/$contentId': typeof PaymentContentIdRoute
+  '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +154,13 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/learn'
+    | '/login'
     | '/notes'
+    | '/signup'
     | '/sports'
     | '/note/$noteId'
+    | '/payment/$contentId'
+    | '/watch/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,9 +170,13 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/learn'
+    | '/login'
     | '/notes'
+    | '/signup'
     | '/sports'
     | '/note/$noteId'
+    | '/payment/$contentId'
+    | '/watch/$videoId'
   id:
     | '__root__'
     | '/'
@@ -142,9 +186,13 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/learn'
+    | '/login'
     | '/notes'
+    | '/signup'
     | '/sports'
     | '/note/$noteId'
+    | '/payment/$contentId'
+    | '/watch/$videoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,9 +203,13 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   EntertainmentRoute: typeof EntertainmentRoute
   LearnRoute: typeof LearnRoute
+  LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRoute
+  SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
   NoteNoteIdRoute: typeof NoteNoteIdRoute
+  PaymentContentIdRoute: typeof PaymentContentIdRoute
+  WatchVideoIdRoute: typeof WatchVideoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -169,11 +221,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notes': {
       id: '/notes'
       path: '/notes'
       fullPath: '/notes'
       preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learn': {
@@ -225,6 +291,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/watch/$videoId': {
+      id: '/watch/$videoId'
+      path: '/watch/$videoId'
+      fullPath: '/watch/$videoId'
+      preLoaderRoute: typeof WatchVideoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/$contentId': {
+      id: '/payment/$contentId'
+      path: '/payment/$contentId'
+      fullPath: '/payment/$contentId'
+      preLoaderRoute: typeof PaymentContentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/note/$noteId': {
       id: '/note/$noteId'
       path: '/note/$noteId'
@@ -243,9 +323,13 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   EntertainmentRoute: EntertainmentRoute,
   LearnRoute: LearnRoute,
+  LoginRoute: LoginRoute,
   NotesRoute: NotesRoute,
+  SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
   NoteNoteIdRoute: NoteNoteIdRoute,
+  PaymentContentIdRoute: PaymentContentIdRoute,
+  WatchVideoIdRoute: WatchVideoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

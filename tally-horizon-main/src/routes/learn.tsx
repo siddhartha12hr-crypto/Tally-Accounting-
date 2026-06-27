@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
-import { Play, Bookmark, Share2, Clock, Signal, Users, BookOpen, Star } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Play, Bookmark, Share2, Clock, Signal, Users, BookOpen, Star, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/learn")({
   head: () => ({
@@ -18,6 +20,23 @@ export const Route = createFileRoute("/learn")({
 function Learn() {
   const [lang, setLang] = useState<"Hindi" | "Nepali">("Hindi");
   const { courses } = useData();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleStartLearning = (courseId: string, price: string) => {
+    const isFree = price === "Free" || price === "₹0";
+    
+    if (!isFree && !isAuthenticated) {
+      toast.info("Please login to access this premium content");
+      navigate({ 
+        to: "/login",
+        search: { redirect: `/watch/${courseId}` }
+      });
+      return;
+    }
+    
+    navigate({ to: `/watch/${courseId}` });
+  };
   
   return (
     <AppShell>
@@ -63,7 +82,10 @@ function Learn() {
                 <p className="text-[10px] opacity-80 mt-0.5">by {course.instructor}</p>
               </div>
               {/* Price Badge */}
-              <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg">
+              <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg flex items-center gap-1">
+                {course.price !== "Free" && course.price !== "₹0" && !isAuthenticated && (
+                  <Lock className="h-3 w-3" />
+                )}
                 {course.price}
               </div>
             </div>
@@ -90,8 +112,16 @@ function Learn() {
               
               {/* Action Buttons */}
               <div className="mt-4 flex items-center gap-2">
-                <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full gradient-hero px-4 py-2 text-xs font-bold text-white shadow-glow">
-                  <Play className="h-3.5 w-3.5" /> Start Learning
+                <button 
+                  onClick={() => handleStartLearning(course.id, course.price)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full gradient-hero px-4 py-2 text-xs font-bold text-white shadow-glow"
+                >
+                  <Play className="h-3.5 w-3.5" /> 
+                  {course.price === "Free" || course.price === "₹0" 
+                    ? "Start Learning Free" 
+                    : isAuthenticated 
+                    ? "Start Learning" 
+                    : "Login to Watch"}
                 </button>
                 <button className="grid h-9 w-9 place-items-center rounded-full glass" aria-label="Save">
                   <Bookmark className="h-4 w-4" />
