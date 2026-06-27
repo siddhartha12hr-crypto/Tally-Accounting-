@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { BottomNav } from "./BottomNav";
 import { MountainBg } from "./MountainBg";
+import { Toaster } from "./ui/sonner";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </motion.main>
       <BottomNav />
+      <Toaster position="top-center" />
     </div>
   );
 }

@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, BookOpen, GraduationCap, User } from "lucide-react";
+import { Home, BookOpen, GraduationCap, User, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 
 const items = [
   { to: "/", label: "Home", icon: Home },
   { to: "/learn", label: "Learn", icon: BookOpen },
   { to: "/courses", label: "Courses", icon: GraduationCap },
+  { to: "/admin", label: "Admin", icon: Settings },
   { to: "/contact", label: "Profile", icon: User },
 ] as const;
 
