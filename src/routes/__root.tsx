@@ -113,7 +113,40 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { DataProvider } from "@/contexts/DataContext";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+
+/* ── Auth Guard ──────────────────────────────────────────
+   Redirects unauthenticated users to /login.
+   Public routes (login, signup) are always accessible.
+   While auth state is loading we show nothing to avoid flash.
+──────────────────────────────────────────────────────── */
+const PUBLIC_ROUTES = ["/login", "/signup"];
+
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return; // wait until localStorage is read
+    const current = router.state.location.pathname;
+    const isPublic = PUBLIC_ROUTES.some(r => current.startsWith(r));
+
+    if (!isAuthenticated && !isPublic) {
+      router.navigate({ to: "/login", replace: true });
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // While loading, show blank screen to avoid route flash
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -122,8 +155,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DataProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <AuthGuard>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </AuthGuard>
         </DataProvider>
       </AuthProvider>
     </QueryClientProvider>

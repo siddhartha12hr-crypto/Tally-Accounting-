@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SportsRouteImport } from './routes/sports'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
@@ -31,6 +32,11 @@ const SportsRoute = SportsRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotesRoute = NotesRouteImport.update({
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/login'
     | '/notes'
+    | '/profile'
     | '/signup'
     | '/sports'
     | '/notes/$noteId'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/login'
     | '/notes'
+    | '/profile'
     | '/signup'
     | '/sports'
     | '/notes/$noteId'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/login'
     | '/notes'
+    | '/profile'
     | '/signup'
     | '/sports'
     | '/notes/$noteId'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRouteWithChildren
+  ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
   PaymentContentIdRoute: typeof PaymentContentIdRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notes': {
@@ -313,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   NotesRoute: NotesRouteWithChildren,
+  ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
   PaymentContentIdRoute: PaymentContentIdRoute,

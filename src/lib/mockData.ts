@@ -28,8 +28,6 @@ export const heroSlides = [
 ];
 
 export const quickActions = [
-  { label: "Learn Now", icon: "BookOpen", to: "/learn" },
-  { label: "Notes", icon: "FileText", to: "/notes" },
   { label: "Videos", icon: "PlayCircle", to: "/learn" },
   { label: "Live Sports", icon: "Trophy", to: "/sports" },
   { label: "Movies", icon: "Film", to: "/entertainment" },

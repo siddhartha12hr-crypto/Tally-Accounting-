@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { 
   Mail, 
@@ -18,7 +19,12 @@ import {
   User,
   ShoppingBag,
   Settings,
-  Crown
+  Crown,
+  Camera,
+  Trash2,
+  Edit2,
+  Check,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
@@ -35,8 +41,39 @@ const faqs = [
 
 function Contact() {
   const [open, setOpen] = useState<number | null>(0);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Edit name state
+  const [editingName, setEditingName] = useState(false);
+  const [nameVal,     setNameVal]     = useState(user?.fullName || "");
+  const [avatarHover, setAvatarHover] = useState(false);
+
+  const initials = (user?.fullName || user?.username || "U")
+    .split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB"); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      updateProfile({ avatar: ev.target?.result as string });
+      toast.success("Profile picture updated!");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const removeAvatar = () => { updateProfile({ avatar: null }); toast.success("Photo removed"); };
+
+  const saveName = () => {
+    if (!nameVal.trim()) { toast.error("Name cannot be empty"); return; }
+    updateProfile({ fullName: nameVal.trim() });
+    setEditingName(false);
+    toast.success("Name updated!");
+  };
 
   const handleLogout = () => {
     logout();
@@ -44,9 +81,7 @@ function Contact() {
     navigate({ to: "/" });
   };
 
-  const handleLogin = () => {
-    navigate({ to: "/login" });
-  };
+  const handleLogin = () => { navigate({ to: "/login" }); };
 
   return (
     <AppShell>
@@ -63,23 +98,97 @@ function Contact() {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-3xl glass p-6 shadow-card mb-4"
         >
-          {/* User Info */}
-          <div className="flex items-start gap-4 mb-6">
-            <div className="h-16 w-16 rounded-full gradient-hero flex items-center justify-center text-white text-2xl font-black shrink-0">
-              {user.name[0].toUpperCase()}
+          {/* ── Avatar + name row ── */}
+          <div className="flex items-start gap-4 mb-5">
+
+            {/* Avatar with edit overlay */}
+            <div className="relative flex-shrink-0 cursor-pointer"
+              onMouseEnter={() => setAvatarHover(true)}
+              onMouseLeave={() => setAvatarHover(false)}
+              onClick={() => fileRef.current?.click()}>
+              <div className="h-16 w-16 rounded-full overflow-hidden shadow-md"
+                style={{ border: "2.5px solid var(--color-primary)" }}>
+                {user.avatar ? (
+                  <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full gradient-hero flex items-center justify-center text-white text-2xl font-black">
+                    {initials}
+                  </div>
+                )}
+              </div>
+              <AnimatePresence>
+                {avatarHover && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="absolute inset-0 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <Camera className="h-5 w-5 text-white" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {/* camera badge */}
+              <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg,#f59e0b,#ea580c)" }}>
+                <Camera className="h-2.5 w-2.5 text-white" />
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-black">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+
+            {/* Hidden file input */}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+
+            {/* Name + email + badge */}
+            <div className="flex-1 min-w-0">
+              {/* Editable name */}
+              {editingName ? (
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Input
+                    value={nameVal}
+                    onChange={e => setNameVal(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") { setNameVal(user.fullName); setEditingName(false); } }}
+                    className="h-8 text-sm font-black rounded-lg px-2 flex-1"
+                    autoFocus
+                  />
+                  <button onClick={saveName}
+                    className="h-7 w-7 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+                    style={{ background: "#22c55e" }}>
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                  <button onClick={() => { setNameVal(user.fullName); setEditingName(false); }}
+                    className="h-7 w-7 rounded-lg border border-border flex items-center justify-center flex-shrink-0 hover:bg-accent">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h3 className="text-xl font-black truncate">{user.fullName || user.name}</h3>
+                  <button onClick={() => { setNameVal(user.fullName); setEditingName(true); }}
+                    className="h-6 w-6 rounded-lg flex items-center justify-center hover:bg-accent transition-colors flex-shrink-0">
+                    <Edit2 className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground truncate">{user.email || user.phone}</p>
               <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                <Crown className="h-3 w-3" />
-                Premium Member
+                <Crown className="h-3 w-3" /> Premium Member
               </div>
             </div>
           </div>
 
+          {/* Avatar action buttons */}
+          <div className="flex gap-2 mb-5">
+            <button onClick={() => fileRef.current?.click()}
+              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border border-primary text-primary hover:bg-primary/10 transition-colors">
+              <Camera className="h-3 w-3" /> {user.avatar ? "Change Photo" : "Add Photo"}
+            </button>
+            {user.avatar && (
+              <button onClick={removeAvatar}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border border-destructive/50 text-destructive hover:bg-destructive/10 transition-colors">
+                <Trash2 className="h-3 w-3" /> Remove
+              </button>
+            )}
+          </div>
+
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="rounded-xl glass p-4 border border-border/50">
               <div className="flex items-center gap-2 mb-2">
                 <ShoppingBag className="h-4 w-4 text-primary" />

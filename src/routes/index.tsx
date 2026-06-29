@@ -1,10 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
 import { quickActions } from "@/lib/mockData";
-import { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, TrendingUp, Clock, Award, Bell, Search, MoreVertical, Menu, ArrowRight } from "lucide-react";
+import { ChatBot } from "@/components/ChatBot";
+import { SearchOverlay } from "@/components/SearchOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, TrendingUp, Clock, Award, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
 
 const iconMap = { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap };
 
@@ -19,50 +22,73 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu]     = useState(false);
+  const [showChat, setShowChat]     = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+
+  const [notifications, setNotifications] = useState([
+    { id: "1", title: "New Course Available", body: "Advanced GST Filing is now live",  time: "2 hours ago", read: false, gradient: "gradient-saffron" },
+    { id: "2", title: "Certification Ready",  body: "You can now take the final exam",   time: "1 day ago",   read: false, gradient: "gradient-royal" },
+    { id: "3", title: "Live Session Tomorrow",body: "Tally Prime Expert Q&A at 6 PM",    time: "2 days ago",  read: false, gradient: "gradient-gold"  },
+  ]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  useEffect(() => {
+    if (showNotifications && unreadCount > 0) {
+      const t = setTimeout(() => setNotifications(prev => prev.map(n => ({ ...n, read: true }))), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [showNotifications]);
+
+  useEffect(() => {
+    const close = () => { setShowNotifications(false); setShowMenu(false); };
+    if (showNotifications || showMenu) {
+      document.addEventListener("click", close);
+      return () => document.removeEventListener("click", close);
+    }
+  }, [showNotifications, showMenu]);
 
   return (
     <AppShell>
-      {/* Professional Top Navbar */}
+      {/* Top Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
         <div className="mx-auto max-w-2xl px-4 h-16 flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl overflow-hidden shadow-glow bg-gradient-to-br from-orange-500 to-red-600">
-              <img 
-                src="https://api.dicebear.com/7.x/shapes/svg?seed=TallyHub&backgroundColor=ff9933,dc143c&scale=80" 
-                alt="Tally Hub Logo"
-                className="h-full w-full object-cover"
-              />
+              <img src="https://api.dicebear.com/7.x/shapes/svg?seed=TallyHub&backgroundColor=ff9933,dc143c&scale=80"
+                alt="Tally Hub Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-lg font-black leading-tight">Tally Hub</h1>
               <p className="text-[10px] text-muted-foreground">Accounting Pro</p>
             </div>
           </div>
-
-          {/* Right Actions */}
           <div className="flex items-center gap-2">
-            {/* Search Icon */}
-            <button className="h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors">
+            {/* Search */}
+            <button onClick={() => setShowSearch(true)}
+              className="h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors">
               <Search className="h-5 w-5" />
             </button>
-
-            {/* Notification Bell with Badge */}
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors"
-            >
+            {/* Bell */}
+            <button onClick={e => { e.stopPropagation(); setShowMenu(false); setShowNotifications(v => !v); }}
+              className="relative h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+              <AnimatePresence>
+                {unreadCount > 0 && (
+                  <motion.span key="badge" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                    className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive flex items-center justify-center">
+                    <span className="text-[9px] font-black text-white">{unreadCount}</span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
-
-            {/* 3-Dot Menu */}
-            <button 
-              onClick={() => setShowMenu(!showMenu)}
-              className="h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors"
-            >
+            {/* Menu */}
+            <button onClick={e => { e.stopPropagation(); setShowNotifications(false); setShowMenu(v => !v); }}
+              className="h-10 w-10 rounded-xl glass flex items-center justify-center hover:bg-accent transition-colors">
               <MoreVertical className="h-5 w-5" />
             </button>
           </div>
@@ -70,73 +96,70 @@ function Home() {
       </div>
 
       {/* Notification Dropdown */}
-      {showNotifications && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 right-4 w-80 glass rounded-2xl shadow-elegant p-4 z-50"
-        >
-          <h3 className="font-bold mb-3 flex items-center justify-between">
-            <span>Notifications</span>
-            <span className="text-xs text-muted-foreground">3 new</span>
-          </h3>
-          <div className="space-y-3">
-            <div className="flex gap-3 p-3 rounded-xl hover:bg-accent transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full gradient-saffron flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">New Course Available</p>
-                <p className="text-xs text-muted-foreground">Advanced GST Filing is now live</p>
-                <p className="text-xs text-primary mt-1">2 hours ago</p>
-              </div>
+      <AnimatePresence>
+        {showNotifications && (
+          <motion.div initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }} transition={{ type: "spring", damping: 22, stiffness: 300 }}
+            onClick={e => e.stopPropagation()}
+            className="fixed top-20 right-4 w-80 glass rounded-2xl shadow-elegant p-4 z-50">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold">Notifications</h3>
+              <span className="text-xs text-muted-foreground">{unreadCount > 0 ? `${unreadCount} unread` : "All read"}</span>
             </div>
-            <div className="flex gap-3 p-3 rounded-xl hover:bg-accent transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full gradient-royal flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">Certification Ready</p>
-                <p className="text-xs text-muted-foreground">You can now take the final exam</p>
-                <p className="text-xs text-primary mt-1">1 day ago</p>
-              </div>
+            <div className="space-y-2">
+              {notifications.map(n => (
+                <motion.div key={n.id} animate={{ opacity: n.read ? 0.6 : 1 }} transition={{ duration: 0.8 }}
+                  className="flex gap-3 p-3 rounded-xl hover:bg-accent transition-colors cursor-pointer">
+                  <div className={`h-10 w-10 rounded-full ${n.gradient} flex-shrink-0`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold truncate">{n.title}</p>
+                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{n.body}</p>
+                    <p className="text-xs text-primary mt-0.5">{n.time}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-            <div className="flex gap-3 p-3 rounded-xl hover:bg-accent transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full gradient-gold flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">Live Session Tomorrow</p>
-                <p className="text-xs text-muted-foreground">Tally Prime Expert Q&A at 6 PM</p>
-                <p className="text-xs text-primary mt-1">2 days ago</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+            <button onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+              className="mt-3 w-full text-xs font-semibold text-primary hover:underline text-center">
+              Mark all as read
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Menu Dropdown */}
-      {showMenu && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 right-4 w-56 glass rounded-2xl shadow-elegant p-2 z-50"
-        >
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">
-            Profile Settings
-          </button>
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">
-            My Courses
-          </button>
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">
-            Certificates
-          </button>
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">
-            Downloads
-          </button>
-          <div className="h-px bg-border my-2" />
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">
-            Help & Support
-          </button>
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold text-destructive">
-            Logout
-          </button>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }} transition={{ type: "spring", damping: 22, stiffness: 300 }}
+            onClick={e => e.stopPropagation()}
+            className="fixed top-20 right-4 w-56 glass rounded-2xl shadow-elegant p-2 z-50">
+            <button onClick={() => { navigate({ to: "/profile" }); setShowMenu(false); }}
+              className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Profile Settings</button>
+            <button onClick={() => { navigate({ to: "/courses" }); setShowMenu(false); }}
+              className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">My Courses</button>
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Certificates</button>
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Downloads</button>
+            <div className="h-px bg-border my-2" />
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Help & Support</button>
+            <button onClick={() => { logout(); navigate({ to: "/login" }); setShowMenu(false); }}
+              className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold text-destructive">Logout</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Search Overlay */}
+      <AnimatePresence>
+        {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
+      </AnimatePresence>
+
+      {/* ChatBot */}
+      <AnimatePresence>
+        {showChat && <ChatBot onClose={() => setShowChat(false)} />}
+      </AnimatePresence>
 
       {/* Main Content - Add top padding for fixed navbar */}
       <div className="pt-20 pb-6">
@@ -155,9 +178,8 @@ function Home() {
               <h2 className="text-xl font-black">Quick Access</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Start learning instantly</p>
             </div>
-            <button className="text-xs font-semibold text-primary hover:underline">View All</button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {quickActions.map((a, idx) => {
               const Icon = iconMap[a.icon];
               return (
@@ -231,7 +253,7 @@ function Home() {
                 </div>
               </div>
             </div>
-            <button className="relative mt-5 w-full rounded-xl gradient-saffron px-4 py-3.5 text-sm font-bold text-white shadow-glow hover:shadow-elegant transition-all flex items-center justify-center gap-2 group/btn">
+            <button onClick={() => navigate({ to: "/courses" })} className="relative mt-5 w-full rounded-xl gradient-saffron px-4 py-3.5 text-sm font-bold text-white shadow-glow hover:shadow-elegant transition-all flex items-center justify-center gap-2 group/btn">
               Resume Learning
               <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
             </button>
@@ -290,7 +312,8 @@ function Home() {
               <p className="text-base font-black text-accent-foreground">Tally AI Guru</p>
               <p className="text-sm text-accent-foreground/80">Ask anything in Hindi or Nepali</p>
             </div>
-            <button className="rounded-xl bg-white/95 px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-card hover:bg-white transition-colors">
+            <button onClick={() => setShowChat(true)}
+              className="rounded-xl bg-white/95 px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-card hover:bg-white transition-colors active:scale-95">
               Chat Now
             </button>
           </div>
