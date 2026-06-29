@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "36c9b563-1852-43d3-96f5-80f3bc36dca6",
+      "fullName": "what",
+      "username": "what",
+      "email": "example@gmail.com",
+      "phone": "1234567890",
+      "passwordHash": "$2a$12$DRxarCZfhhpPmwu.J55MwedaQbv//96ftr5wIUypar8jW4DckOAdG",
+      "avatar": null,
+      "createdAt": "2026-06-29T14:18:31.976Z"
+    }
+  ]
+}
