@@ -17,12 +17,11 @@ import { Route as LearnRouteImport } from './routes/learn'
 import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as BalanceSheetRouteImport } from './routes/balance-sheet'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
-import { Route as NoteNoteIdRouteImport } from './routes/note.$noteId'
+import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -64,11 +63,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BalanceSheetRoute = BalanceSheetRouteImport.update({
-  id: '/balance-sheet',
-  path: '/balance-sheet',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -89,41 +83,39 @@ const PaymentContentIdRoute = PaymentContentIdRouteImport.update({
   path: '/payment/$contentId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NoteNoteIdRoute = NoteNoteIdRouteImport.update({
-  id: '/note/$noteId',
-  path: '/note/$noteId',
-  getParentRoute: () => rootRouteImport,
+const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
+  id: '/$noteId',
+  path: '/$noteId',
+  getParentRoute: () => NotesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
-  '/notes': typeof NotesRoute
+  '/notes': typeof NotesRouteWithChildren
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/note/$noteId': typeof NoteNoteIdRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
-  '/notes': typeof NotesRoute
+  '/notes': typeof NotesRouteWithChildren
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/note/$noteId': typeof NoteNoteIdRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
@@ -131,16 +123,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/balance-sheet': typeof BalanceSheetRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
-  '/notes': typeof NotesRoute
+  '/notes': typeof NotesRouteWithChildren
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/note/$noteId': typeof NoteNoteIdRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
@@ -149,7 +140,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
-    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
@@ -158,14 +148,13 @@ export interface FileRouteTypes {
     | '/notes'
     | '/signup'
     | '/sports'
-    | '/note/$noteId'
+    | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
-    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
@@ -174,14 +163,13 @@ export interface FileRouteTypes {
     | '/notes'
     | '/signup'
     | '/sports'
-    | '/note/$noteId'
+    | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
   id:
     | '__root__'
     | '/'
     | '/admin'
-    | '/balance-sheet'
     | '/contact'
     | '/courses'
     | '/entertainment'
@@ -190,7 +178,7 @@ export interface FileRouteTypes {
     | '/notes'
     | '/signup'
     | '/sports'
-    | '/note/$noteId'
+    | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
   fileRoutesById: FileRoutesById
@@ -198,16 +186,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  BalanceSheetRoute: typeof BalanceSheetRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   EntertainmentRoute: typeof EntertainmentRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
-  NotesRoute: typeof NotesRoute
+  NotesRoute: typeof NotesRouteWithChildren
   SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
-  NoteNoteIdRoute: typeof NoteNoteIdRoute
   PaymentContentIdRoute: typeof PaymentContentIdRoute
   WatchVideoIdRoute: typeof WatchVideoIdRoute
 }
@@ -270,13 +256,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/balance-sheet': {
-      id: '/balance-sheet'
-      path: '/balance-sheet'
-      fullPath: '/balance-sheet'
-      preLoaderRoute: typeof BalanceSheetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -305,29 +284,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentContentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/note/$noteId': {
-      id: '/note/$noteId'
-      path: '/note/$noteId'
-      fullPath: '/note/$noteId'
-      preLoaderRoute: typeof NoteNoteIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/notes/$noteId': {
+      id: '/notes/$noteId'
+      path: '/$noteId'
+      fullPath: '/notes/$noteId'
+      preLoaderRoute: typeof NotesNoteIdRouteImport
+      parentRoute: typeof NotesRoute
     }
   }
 }
 
+interface NotesRouteChildren {
+  NotesNoteIdRoute: typeof NotesNoteIdRoute
+}
+
+const NotesRouteChildren: NotesRouteChildren = {
+  NotesNoteIdRoute: NotesNoteIdRoute,
+}
+
+const NotesRouteWithChildren = NotesRoute._addFileChildren(NotesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  BalanceSheetRoute: BalanceSheetRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   EntertainmentRoute: EntertainmentRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
-  NotesRoute: NotesRoute,
+  NotesRoute: NotesRouteWithChildren,
   SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
-  NoteNoteIdRoute: NoteNoteIdRoute,
   PaymentContentIdRoute: PaymentContentIdRoute,
   WatchVideoIdRoute: WatchVideoIdRoute,
 }

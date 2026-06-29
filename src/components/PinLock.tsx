@@ -5,7 +5,7 @@ import { BottomNav } from "./BottomNav";
 
 const CORRECT_PIN = "9090";
 
-export function PinLock({ title, children }: { title: string; children: ReactNode }) {
+export function PinLock({ title, pin: correctPin = CORRECT_PIN, children }: { title: string; pin?: string; children: ReactNode }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -17,7 +17,7 @@ export function PinLock({ title, children }: { title: string; children: ReactNod
     setError(false);
     if (next.length === 4) {
       setTimeout(() => {
-        if (next === CORRECT_PIN) setUnlocked(true);
+        if (next === correctPin) setUnlocked(true);
         else { setError(true); setPin(""); }
       }, 200);
     }

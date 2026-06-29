@@ -16,7 +16,8 @@ import {
   Edit,
   Trash2,
   Eye,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from "lucide-react";
 import { AdminVideos } from "@/components/admin/AdminVideos";
 import { AdminSports } from "@/components/admin/AdminSports";
@@ -24,28 +25,30 @@ import { AdminMovies } from "@/components/admin/AdminMovies";
 import { AdminCourses } from "@/components/admin/AdminCourses";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminNotes } from "@/components/admin/AdminNotes";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel — Tally Accounting Hub Pro" }] }),
   component: AdminPage,
 });
 
-type TabType = "dashboard" | "videos" | "sports" | "movies" | "courses" | "settings";
+type TabType = "dashboard" | "videos" | "sports" | "movies" | "courses" | "notes" | "settings";
 
 function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
 
   const tabs = [
     { id: "dashboard" as const, label: "Dashboard", icon: BarChart3 },
-    { id: "videos" as const, label: "Videos", icon: Video },
-    { id: "sports" as const, label: "Sports", icon: Trophy },
-    { id: "movies" as const, label: "Movies", icon: Film },
-    { id: "courses" as const, label: "Courses", icon: GraduationCap },
-    { id: "settings" as const, label: "Settings", icon: Settings },
+    { id: "videos"    as const, label: "Videos",    icon: Video },
+    { id: "sports"    as const, label: "Sports",    icon: Trophy },
+    { id: "movies"    as const, label: "Movies",    icon: Film },
+    { id: "courses"   as const, label: "Courses",   icon: GraduationCap },
+    { id: "notes"     as const, label: "Notes",     icon: FileText },
+    { id: "settings"  as const, label: "Settings",  icon: Settings },
   ];
 
   return (
-    <PinLock title="Admin Access">
+    <PinLock title="Admin Access" pin="1111">
       <AppShell>
         <PageHeader 
           eyebrow="Admin Panel" 
@@ -92,11 +95,12 @@ function AdminPage() {
           >
             <ErrorBoundary key={`error-boundary-${activeTab}`}>
               {activeTab === "dashboard" && <AdminDashboard />}
-              {activeTab === "videos" && <AdminVideos />}
-              {activeTab === "sports" && <AdminSports />}
-              {activeTab === "movies" && <AdminMovies />}
-              {activeTab === "courses" && <AdminCourses />}
-              {activeTab === "settings" && <AdminSettings />}
+              {activeTab === "videos"    && <AdminVideos />}
+              {activeTab === "sports"    && <AdminSports />}
+              {activeTab === "movies"    && <AdminMovies />}
+              {activeTab === "courses"   && <AdminCourses />}
+              {activeTab === "notes"     && <AdminNotes />}
+              {activeTab === "settings"  && <AdminSettings />}
             </ErrorBoundary>
           </motion.div>
         </AnimatePresence>

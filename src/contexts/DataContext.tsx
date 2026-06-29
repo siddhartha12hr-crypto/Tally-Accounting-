@@ -59,11 +59,29 @@ export interface Movie {
   language: string;
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  thumbnailUrl: string;
+  pdfUrl: string;
+  tags: string[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  readingTime: string;
+  pageCount: number;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'published' | 'draft';
+}
+
 interface DataContextType {
   courses: Course[];
   videos: Video[];
   sports: Sport[];
   movies: Movie[];
+  notes: Note[];
   addCourse: (course: Course) => void;
   updateCourse: (id: string, course: Partial<Course>) => void;
   deleteCourse: (id: string) => void;
@@ -76,6 +94,9 @@ interface DataContextType {
   addMovie: (movie: Movie) => void;
   updateMovie: (id: string, movie: Partial<Movie>) => void;
   deleteMovie: (id: string) => void;
+  addNote: (note: Note) => void;
+  updateNote: (id: string, note: Partial<Note>) => void;
+  deleteNote: (id: string) => void;
 }
 
 // Initial data
@@ -144,11 +165,13 @@ const STORAGE_KEYS = {
   VIDEOS: 'tally_videos',
   SPORTS: 'tally_sports',
   MOVIES: 'tally_movies',
+  NOTES: 'tally_notes',
 };
 
 // Helper functions for localStorage
 const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
   try {
+    if (typeof localStorage === "undefined") return defaultValue;
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
@@ -159,6 +182,7 @@ const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
 
 const saveToStorage = <T,>(key: string, value: T): void => {
   try {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
     console.error(`Error saving ${key} to storage:`, error);
@@ -180,6 +204,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [movies, setMovies] = useState<Movie[]>(() => 
     loadFromStorage(STORAGE_KEYS.MOVIES, [])
   );
+  const [notes, setNotes] = useState<Note[]>(() =>
+    loadFromStorage(STORAGE_KEYS.NOTES, [])
+  );
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -197,6 +224,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.MOVIES, movies);
   }, [movies]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.NOTES, notes);
+  }, [notes]);
 
   // Course operations
   const addCourse = (course: Course) => {
@@ -258,11 +289,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setMovies(prev => prev.filter(movie => movie.id !== id));
   };
 
+  // Note operations
+  const addNote = (note: Note) => {
+    setNotes(prev => [...prev, note]);
+  };
+
+  const updateNote = (id: string, updatedNote: Partial<Note>) => {
+    setNotes(prev => prev.map(note =>
+      note.id === id ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() } : note
+    ));
+  };
+
+  const deleteNote = (id: string) => {
+    setNotes(prev => prev.filter(note => note.id !== id));
+  };
+
   const value: DataContextType = {
     courses,
     videos,
     sports,
     movies,
+    notes,
     addCourse,
     updateCourse,
     deleteCourse,
@@ -275,6 +322,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     addMovie,
     updateMovie,
     deleteMovie,
+    addNote,
+    updateNote,
+    deleteNote,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
