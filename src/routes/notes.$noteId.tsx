@@ -51,7 +51,26 @@ function NoteDetails() {
 
   const openPdf = () => {
     if (!note.pdfUrl) return;
-    window.open(note.pdfUrl, "_blank", "noopener,noreferrer");
+
+    // Convert base64 data URLs to blob URLs for better browser compatibility
+    if (note.pdfUrl.startsWith("data:")) {
+      try {
+        const byteString = atob(note.pdfUrl.split(",")[1]);
+        const mimeMatch = note.pdfUrl.match(/data:([^;]+)/);
+        const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+        const blob = new Blob([ab], { type: mime });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
+      } catch {
+        // Fallback: try opening the data URL directly
+        window.open(note.pdfUrl, "_blank", "noopener,noreferrer");
+      }
+    } else {
+      window.open(note.pdfUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   const downloadPdf = () => {
