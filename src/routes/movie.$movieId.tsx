@@ -6,7 +6,7 @@ import {
   Calendar, User, Film, Users,
 } from "lucide-react";
 
-export const Route = createFileRoute("/entertainment/$movieId")({
+export const Route = createFileRoute("/movie/$movieId")({
   component: MovieDetail,
 });
 
@@ -171,22 +171,22 @@ function MovieDetail() {
           <h2 className="text-base font-black text-white mb-3">More Like This</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {MOVIES.filter(m => m.id !== movie.id && m.genre === movie.genre).slice(0, 4).map(m => (
-              <motion.div key={m.id} whileTap={{ scale: 0.95 }}
-                onClick={() => navigate({ to: "/entertainment/$movieId", params: { movieId: m.id } })}
-                className="flex-shrink-0 rounded-xl overflow-hidden cursor-pointer"
+              <motion.button key={m.id} whileTap={{ scale: 0.95 }}
+                onClick={() => navigate({ to: "/movie/$movieId", params: { movieId: m.id } })}
+                className="flex-shrink-0 rounded-xl overflow-hidden relative"
                 style={{ width: 110, height: 160 }}>
                 <img src={m.poster} alt={m.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 rounded-xl"
                   style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)" }} />
-              </motion.div>
+              </motion.button>
             ))}
             {MOVIES.filter(m => m.id !== movie.id && m.genre !== movie.genre).slice(0, 2).map(m => (
-              <motion.div key={m.id} whileTap={{ scale: 0.95 }}
-                onClick={() => navigate({ to: "/entertainment/$movieId", params: { movieId: m.id } })}
-                className="flex-shrink-0 rounded-xl overflow-hidden cursor-pointer relative"
+              <motion.button key={m.id} whileTap={{ scale: 0.95 }}
+                onClick={() => navigate({ to: "/movie/$movieId", params: { movieId: m.id } })}
+                className="flex-shrink-0 rounded-xl overflow-hidden relative"
                 style={{ width: 110, height: 160 }}>
                 <img src={m.poster} alt={m.title} className="w-full h-full object-cover" />
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </div>
