@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SportsRouteImport } from './routes/sports'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LoginRouteImport } from './routes/login'
@@ -22,6 +23,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
+import { Route as TakeQuizQuizIdRouteImport } from './routes/take-quiz.$quizId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
 import { Route as MovieMovieIdRouteImport } from './routes/movie.$movieId'
@@ -34,6 +36,11 @@ const SportsRoute = SportsRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuizRoute = QuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -91,6 +98,11 @@ const WatchVideoIdRoute = WatchVideoIdRouteImport.update({
   path: '/watch/$videoId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TakeQuizQuizIdRoute = TakeQuizQuizIdRouteImport.update({
+  id: '/take-quiz/$quizId',
+  path: '/take-quiz/$quizId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PaymentContentIdRoute = PaymentContentIdRouteImport.update({
   id: '/payment/$contentId',
   path: '/payment/$contentId',
@@ -118,11 +130,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
+  '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRoutesByTo {
@@ -136,11 +150,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
+  '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRoutesById {
@@ -155,11 +171,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
+  '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
 }
 export interface FileRouteTypes {
@@ -175,11 +193,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/notes'
     | '/profile'
+    | '/quiz'
     | '/signup'
     | '/sports'
     | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
+    | '/take-quiz/$quizId'
     | '/watch/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -193,11 +213,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/notes'
     | '/profile'
+    | '/quiz'
     | '/signup'
     | '/sports'
     | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
+    | '/take-quiz/$quizId'
     | '/watch/$videoId'
   id:
     | '__root__'
@@ -211,11 +233,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/notes'
     | '/profile'
+    | '/quiz'
     | '/signup'
     | '/sports'
     | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
+    | '/take-quiz/$quizId'
     | '/watch/$videoId'
   fileRoutesById: FileRoutesById
 }
@@ -230,10 +254,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  QuizRoute: typeof QuizRoute
   SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
   MovieMovieIdRoute: typeof MovieMovieIdRoute
   PaymentContentIdRoute: typeof PaymentContentIdRoute
+  TakeQuizQuizIdRoute: typeof TakeQuizQuizIdRoute
   WatchVideoIdRoute: typeof WatchVideoIdRoute
 }
 
@@ -251,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiz': {
+      id: '/quiz'
+      path: '/quiz'
+      fullPath: '/quiz'
+      preLoaderRoute: typeof QuizRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -330,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchVideoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/take-quiz/$quizId': {
+      id: '/take-quiz/$quizId'
+      path: '/take-quiz/$quizId'
+      fullPath: '/take-quiz/$quizId'
+      preLoaderRoute: typeof TakeQuizQuizIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/payment/$contentId': {
       id: '/payment/$contentId'
       path: '/payment/$contentId'
@@ -375,10 +415,12 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   NotesRoute: NotesRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  QuizRoute: QuizRoute,
   SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
   MovieMovieIdRoute: MovieMovieIdRoute,
   PaymentContentIdRoute: PaymentContentIdRoute,
+  TakeQuizQuizIdRoute: TakeQuizQuizIdRoute,
   WatchVideoIdRoute: WatchVideoIdRoute,
 }
 export const routeTree = rootRouteImport

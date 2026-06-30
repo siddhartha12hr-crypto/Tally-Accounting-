@@ -7,9 +7,9 @@ import { quickActions } from "@/lib/mockData";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "../../imgfile/logo.png";
-import { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, MessageCircle, Clock, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
+import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Clock, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
 
-const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, MessageCircle };
+const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle };
 
 export const Route = createFileRoute("/")({
   head: () => ({
