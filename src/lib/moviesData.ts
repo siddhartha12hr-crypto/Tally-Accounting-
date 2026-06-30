@@ -177,5 +177,3 @@ export const MOVIES: Movie[] = [
     videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
 ];
-
-export const MOVIES: Movie[] = [
