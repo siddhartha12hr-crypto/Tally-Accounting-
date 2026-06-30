@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
+import { Route as EntertainmentMovieIdRouteImport } from './routes/entertainment.$movieId'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -94,19 +95,25 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
   path: '/$noteId',
   getParentRoute: () => NotesRoute,
 } as any)
+const EntertainmentMovieIdRoute = EntertainmentMovieIdRouteImport.update({
+  id: '/$movieId',
+  path: '/$movieId',
+  getParentRoute: () => EntertainmentRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRoute
+  '/entertainment': typeof EntertainmentRouteWithChildren
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -116,13 +123,14 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRoute
+  '/entertainment': typeof EntertainmentRouteWithChildren
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -133,13 +141,14 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRoute
+  '/entertainment': typeof EntertainmentRouteWithChildren
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/entertainment/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/entertainment/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/entertainment/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -200,7 +212,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
-  EntertainmentRoute: typeof EntertainmentRoute
+  EntertainmentRoute: typeof EntertainmentRouteWithChildren
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRouteWithChildren
@@ -311,8 +323,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof NotesRoute
     }
+    '/entertainment/$movieId': {
+      id: '/entertainment/$movieId'
+      path: '/$movieId'
+      fullPath: '/entertainment/$movieId'
+      preLoaderRoute: typeof EntertainmentMovieIdRouteImport
+      parentRoute: typeof EntertainmentRoute
+    }
   }
 }
+
+interface EntertainmentRouteChildren {
+  EntertainmentMovieIdRoute: typeof EntertainmentMovieIdRoute
+}
+
+const EntertainmentRouteChildren: EntertainmentRouteChildren = {
+  EntertainmentMovieIdRoute: EntertainmentMovieIdRoute,
+}
+
+const EntertainmentRouteWithChildren = EntertainmentRoute._addFileChildren(
+  EntertainmentRouteChildren,
+)
 
 interface NotesRouteChildren {
   NotesNoteIdRoute: typeof NotesNoteIdRoute
@@ -329,7 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
-  EntertainmentRoute: EntertainmentRoute,
+  EntertainmentRoute: EntertainmentRouteWithChildren,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   NotesRoute: NotesRouteWithChildren,

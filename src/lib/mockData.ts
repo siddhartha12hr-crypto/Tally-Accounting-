@@ -69,10 +69,14 @@ export const footballMatches = [
 ];
 
 export const movies = [
-  { title: "Pathaan", genre: "Action", rating: 8.2, desc: "A spy thriller with breathtaking action." },
-  { title: "3 Idiots", genre: "Comedy/Drama", rating: 9.1, desc: "An iconic story of friendship and dreams." },
-  { title: "Kabhi Khushi Kabhie Gham", genre: "Drama", rating: 8.0, desc: "A family epic across generations." },
-  { title: "RRR", genre: "Action", rating: 8.7, desc: "An epic tale of two revolutionaries." },
-  { title: "Loot", genre: "Nepali Thriller", rating: 8.5, desc: "Iconic Nepali heist thriller." },
-  { title: "Kabaddi", genre: "Nepali Comedy", rating: 8.1, desc: "Heartwarming village comedy." },
+  { title: "Pathaan",                    genre: "Action",         rating: 8.2, desc: "A spy thriller with breathtaking action sequences across the globe.", year: "2023", duration: "2h 26m", poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80" },
+  { title: "3 Idiots",                   genre: "Comedy/Drama",   rating: 9.1, desc: "An iconic story of friendship, dreams and the broken education system.", year: "2009", duration: "2h 50m", poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80" },
+  { title: "Kabhi Khushi Kabhie Gham",   genre: "Drama",          rating: 8.0, desc: "A family epic that spans generations, love and sacrifice.", year: "2001", duration: "3h 30m", poster: "https://images.unsplash.com/photo-1512070679279-8988d32161be?w=400&q=80" },
+  { title: "RRR",                        genre: "Action",         rating: 8.7, desc: "An epic tale of two legendary revolutionaries fighting British rule.", year: "2022", duration: "3h 7m",  poster: "https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=400&q=80" },
+  { title: "Loot",                       genre: "Nepali Thriller", rating: 8.5, desc: "Iconic Nepali heist thriller that redefined Nepali cinema.", year: "2012", duration: "2h 10m", poster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=400&q=80" },
+  { title: "Kabaddi",                    genre: "Nepali Comedy",  rating: 8.1, desc: "Heartwarming village comedy about love and tradition.", year: "2013", duration: "2h 5m",  poster: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?w=400&q=80" },
+  { title: "Dangal",                     genre: "Biography",      rating: 8.4, desc: "A father trains his daughters to become world-class wrestlers.", year: "2016", duration: "2h 41m", poster: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&q=80" },
+  { title: "KGF Chapter 2",             genre: "Action",         rating: 8.2, desc: "Rocky's fearsome reputation spreads across the nation.", year: "2022", duration: "2h 48m", poster: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&q=80" },
+  { title: "Baahubali 2",               genre: "Epic Action",    rating: 8.5, desc: "The conclusion to an epic saga of power, betrayal and love.", year: "2017", duration: "2h 47m", poster: "https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=400&q=80" },
+  { title: "Pashupati Prasad",          genre: "Nepali Drama",   rating: 8.3, desc: "A moving story of hope, dignity and humanity in Kathmandu.", year: "2016", duration: "2h 15m", poster: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=80" },
 ];
