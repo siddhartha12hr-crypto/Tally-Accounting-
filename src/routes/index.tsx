@@ -135,15 +135,15 @@ function Home() {
           <motion.div initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.97 }} transition={{ type: "spring", damping: 22, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
-            className="fixed top-20 right-4 w-56 glass rounded-2xl shadow-elegant p-2 z-50">
+            className="fixed top-20 right-4 w-56 glass rounded-2xl shadow-elegant p-1.5 z-50">
             <button onClick={() => { navigate({ to: "/profile" }); setShowMenu(false); }}
               className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Profile Settings</button>
             <button onClick={() => { navigate({ to: "/courses" }); setShowMenu(false); }}
               className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">My Courses</button>
             <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Certificates</button>
-            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Downloads</button>
-            <div className="h-px bg-border my-2" />
-            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Help & Support</button>
+            <div className="h-px bg-border mx-2" />
+            <button onClick={() => { navigate({ to: "/help" }); setShowMenu(false); }}
+              className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold">Help & Support</button>
             <button onClick={() => { logout(); navigate({ to: "/login" }); setShowMenu(false); }}
               className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent transition-colors text-sm font-semibold text-destructive">Logout</button>
           </motion.div>

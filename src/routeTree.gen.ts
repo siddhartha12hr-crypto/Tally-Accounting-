@@ -15,6 +15,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -53,6 +54,11 @@ const LoginRoute = LoginRouteImport.update({
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntertainmentRoute = EntertainmentRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRouteWithChildren
+  '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRouteWithChildren
+  '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/entertainment': typeof EntertainmentRouteWithChildren
+  '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/entertainment'
+    | '/help'
     | '/learn'
     | '/login'
     | '/notes'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/entertainment'
+    | '/help'
     | '/learn'
     | '/login'
     | '/notes'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/entertainment'
+    | '/help'
     | '/learn'
     | '/login'
     | '/notes'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   EntertainmentRoute: typeof EntertainmentRouteWithChildren
+  HelpRoute: typeof HelpRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRouteWithChildren
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entertainment': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   EntertainmentRoute: EntertainmentRouteWithChildren,
+  HelpRoute: HelpRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   NotesRoute: NotesRouteWithChildren,
