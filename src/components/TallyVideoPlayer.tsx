@@ -124,14 +124,13 @@ export function TallyVideoPlayer() {
   const currentIdx = TALLY_VIDEOS.findIndex(v => v.id === current.id);
 
   return (
-    <div className="flex flex-col gap-0 rounded-3xl overflow-hidden shadow-elegant"
+    <div className="flex flex-col gap-0 overflow-hidden"
       style={{ background: "var(--color-card)" }}>
 
       {/* ── Video area ── */}
       <div className="relative w-full bg-black select-none"
         style={{ aspectRatio: "16/9" }}
         onMouseMove={resetHide}
-        onClick={togglePlay}
       >
         <video
           ref={videoRef}
@@ -162,16 +161,16 @@ export function TallyVideoPlayer() {
               transition={{ duration: 0.2 }}
               className="absolute inset-0 flex flex-col justify-end"
               style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 50%)" }}
-              onClick={e => e.stopPropagation()}
+              onClick={togglePlay}
             >
               {/* Title */}
-              <div className="px-4 pb-1">
+              <div className="px-4 pb-1" onClick={e => e.stopPropagation()}>
                 <p className="text-white text-xs font-bold opacity-80 truncate">{current.section}</p>
                 <p className="text-white text-sm font-black truncate">{current.title}</p>
               </div>
 
               {/* Progress bar */}
-              <div className="px-4 pb-2 flex items-center gap-2">
+              <div className="px-4 pb-2 flex items-center gap-2" onClick={e => e.stopPropagation()}>
                 <span className="text-white text-[10px] font-bold w-9 flex-shrink-0">
                   {videoRef.current ? formatTime(videoRef.current.currentTime) : "0:00"}
                 </span>
@@ -191,7 +190,7 @@ export function TallyVideoPlayer() {
               </div>
 
               {/* Buttons row */}
-              <div className="px-4 pb-3 flex items-center justify-between">
+              <div className="px-4 pb-3 flex items-center justify-between" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-3">
                   <button onClick={playPrev} disabled={currentIdx === 0}
                     className="text-white disabled:opacity-40 hover:scale-110 transition-transform">
@@ -234,11 +233,18 @@ export function TallyVideoPlayer() {
 
         {/* Big play button when paused */}
         {!playing && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="h-16 w-16 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(234,88,12,0.85)" }}>
+          <div
+            className="absolute inset-0 flex items-center justify-center cursor-pointer"
+            onClick={togglePlay}
+          >
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.93 }}
+              className="h-16 w-16 rounded-full flex items-center justify-center shadow-2xl"
+              style={{ background: "rgba(234,88,12,0.92)" }}
+            >
               <Play className="h-8 w-8 text-white ml-1" />
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

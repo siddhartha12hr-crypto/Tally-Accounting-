@@ -116,33 +116,36 @@ import { DataProvider } from "@/contexts/DataContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 /* ── Auth Guard ──────────────────────────────────────────
-   Redirects unauthenticated users to /login.
-   Public routes (login, signup) are always accessible.
-   While auth state is loading we show nothing to avoid flash.
+   Only /courses requires login.
+   All other routes are freely accessible.
 ──────────────────────────────────────────────────────── */
-const PUBLIC_ROUTES = ["/login", "/signup"];
+const PROTECTED_ROUTES = ["/courses"];
 
 function AuthGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return; // wait until localStorage is read
+    if (isLoading) return;
     const current = router.state.location.pathname;
-    const isPublic = PUBLIC_ROUTES.some(r => current.startsWith(r));
+    const needsAuth = PROTECTED_ROUTES.some(r => current.startsWith(r));
 
-    if (!isAuthenticated && !isPublic) {
+    if (needsAuth && !isAuthenticated) {
       router.navigate({ to: "/login", replace: true });
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // While loading, show blank screen to avoid route flash
+  // Only show spinner when loading AND trying to access a protected route
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
+    const current = router.state.location.pathname;
+    const needsAuth = PROTECTED_ROUTES.some(r => current.startsWith(r));
+    if (needsAuth) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        </div>
+      );
+    }
   }
 
   return <>{children}</>;
