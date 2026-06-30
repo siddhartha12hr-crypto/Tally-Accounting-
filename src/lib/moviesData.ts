@@ -12,6 +12,7 @@ export interface Movie {
   releaseDate: string;
   studio: string;
   poster: string;
+  videoUrl: string;
 }
 
 export const MOVIES: Movie[] = [
@@ -29,6 +30,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "25 January 2023",
     studio: "Yash Raj Films",
     poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "3-idiots",
@@ -44,6 +46,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "25 December 2009",
     studio: "Vinod Chopra Films",
     poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
   {
     id: "k3g",
@@ -59,6 +62,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "14 December 2001",
     studio: "Dharma Productions",
     poster: "https://images.unsplash.com/photo-1512070679279-8988d32161be?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "rrr",
@@ -74,6 +78,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "25 March 2022",
     studio: "DVV Entertainment",
     poster: "https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
   {
     id: "loot",
@@ -89,6 +94,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "11 May 2012",
     studio: "Filmy Duniya",
     poster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "kabaddi",
@@ -104,6 +110,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "10 October 2013",
     studio: "Dristi Entertainment",
     poster: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
   {
     id: "dangal",
@@ -119,6 +126,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "23 December 2016",
     studio: "Walt Disney Pictures India",
     poster: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "kgf2",
@@ -134,6 +142,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "14 April 2022",
     studio: "Hombale Films",
     poster: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
   {
     id: "baahubali2",
@@ -149,6 +158,7 @@ export const MOVIES: Movie[] = [
     releaseDate: "28 April 2017",
     studio: "Arka Media Works",
     poster: "https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
   {
     id: "pashupati-prasad",
@@ -164,5 +174,8 @@ export const MOVIES: Movie[] = [
     releaseDate: "19 February 2016",
     studio: "Himal Chuli Films",
     poster: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
   },
 ];
+
+export const MOVIES: Movie[] = [

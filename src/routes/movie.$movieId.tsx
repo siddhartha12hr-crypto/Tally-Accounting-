@@ -79,6 +79,7 @@ function MovieDetail() {
         <motion.button
           whileTap={{ scale: 0.96 }}
           whileHover={{ scale: 1.02 }}
+          onClick={() => window.open(movie.videoUrl, "_blank", "noopener,noreferrer")}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-black text-black mb-4"
           style={{ background: "white" }}
         >
