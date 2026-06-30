@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
 import { quickActions } from "@/lib/mockData";
 import { SearchOverlay } from "@/components/SearchOverlay";
+import { ChatBot } from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "../../imgfile/logo.png";
 import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Clock, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";

@@ -4,7 +4,7 @@ import { X, Send, Bot, User, Loader2, Sparkles } from "lucide-react";
 
 interface Message {
   id: string;
-  role: "user" | "bot";
+  role: "user" | "assistant";
   text: string;
   time: string;
 }
@@ -12,115 +12,85 @@ interface Message {
 const getTime = () =>
   new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
-/* ─────────────────────────────────────────────
-   KNOWLEDGE BASE  — pure frontend, no API key
-───────────────────────────────────────────── */
-const KB: { keywords: string[]; answer: string }[] = [
-  {
-    keywords: ["hello", "hi", "hey", "namaste", "namaskar", "helo", "hii"],
-    answer: "Namaste! 🙏 I'm Tally AI Guru.\n\nI can help you with:\n• Tally Prime — vouchers, shortcuts, reports\n• GST — GSTR-1, 3B, returns, TDS\n• Accounting — journal entries, ledgers, P&L\n• Excel — formulas, pivot tables, VLOOKUP\n• Finance — balance sheet, cash flow\n\nWhat would you like to know today?",
-  },
-  {
-    keywords: ["help", "kya kar sakte", "what can you do", "features", "topics"],
-    answer: "Here's what I can help you with:\n\n📊 Accounting\nJournal entries, ledgers, trial balance, debit/credit rules\n\n🧾 GST & Tax\nGSTR-1, GSTR-3B, TDS, input tax credit, e-invoicing\n\n💼 Tally Prime\nVouchers, shortcuts, company setup, inventory, payroll\n\n📈 Excel\nFormulas, VLOOKUP, pivot tables, conditional formatting\n\n💰 Finance\nBalance sheet, P&L, cash flow, ratio analysis\n\nJust type your question! मैं हिंदी में भी समझता हूँ 😊",
-  },
-  {
-    keywords: ["tally prime", "tally erp", "tally software", "tally kya hai"],
-    answer: "Tally Prime is India's most popular business accounting software.\n\nKey Features:\n• Accounting & Book-keeping\n• GST billing & returns\n• Inventory management\n• Payroll & HR\n• Banking & reconciliation\n• MIS reports\n\nHow to start:\n1. Create Company → Gateway of Tally\n2. Set financial year\n3. Create ledgers under proper groups\n4. Start entering vouchers (F4–F9)\n\nWant to know about any specific feature?",
-  },
-  {
-    keywords: ["voucher", "f4", "f5", "f6", "f7", "f8", "f9", "contra", "payment", "receipt", "sales", "purchase"],
-    answer: "Tally Voucher Types & Shortcuts:\n\n• F4 — Contra (cash ↔ bank)\n• F5 — Payment (cash/bank going out)\n• F6 — Receipt (cash/bank coming in)\n• F7 — Journal (adjustments, provisions)\n• F8 — Sales Invoice\n• F9 — Purchase Invoice\n• F10 — Reversing Journal\n• Alt+F5 — Debit Note\n• Alt+F6 — Credit Note\n\nTip: Press Ctrl+A to save any voucher quickly!",
-  },
-  {
-    keywords: ["shortcut", "keyboard", "hotkey", "key", "shortcut key", "tally shortcut"],
-    answer: "Essential Tally Prime Shortcuts:\n\nNavigation:\n• Ctrl+G — Go To any screen\n• Alt+G — Go To reports\n• Escape — Go back\n• Enter — Select/Drill down\n\nVouchers:\n• F2 — Change date\n• F4 — Contra  • F5 — Payment\n• F6 — Receipt  • F7 — Journal\n• F8 — Sales    • F9 — Purchase\n\nReports:\n• Alt+F1 — Detailed view\n• Alt+F2 — Auto column\n• Ctrl+B — Change period\n• Ctrl+F3 — Group company",
-  },
-  {
-    keywords: ["gst", "goods and service", "igst", "cgst", "sgst", "gst kya hai"],
-    answer: "GST (Goods & Services Tax) — India's unified indirect tax.\n\nThree Components:\n• CGST — Central GST (intra-state)\n• SGST — State GST (intra-state)\n• IGST — Integrated GST (inter-state)\n\nGST Rates: 0%, 5%, 12%, 18%, 28%\n\nKey Returns:\n• GSTR-1 — Outward supplies (monthly/quarterly)\n• GSTR-3B — Summary return (monthly)\n• GSTR-9 — Annual return\n\nIn Tally: Enable GST under F11 → Statutory Features",
-  },
-  {
-    keywords: ["gstr", "gstr1", "gstr-1", "gstr3b", "gstr-3b", "return", "filing"],
-    answer: "GST Return Filing Guide:\n\nGSTR-1 (Outward Supply):\n• Due: 11th of next month\n• Contains all sales invoices\n• Exported from Tally → GST Returns → GSTR-1\n\nGSTR-3B (Summary):\n• Due: 20th of next month\n• Monthly tax payment return\n• Auto-populated from GSTR-1\n\nInput Tax Credit (ITC):\n• Claim ITC on purchases\n• Available in GSTR-2B\n• Must match supplier's GSTR-1\n\nIn Tally: Reports → GST Reports → GSTR-1/3B",
-  },
-  {
-    keywords: ["tds", "tax deducted", "tds kya", "194", "194c", "194j"],
-    answer: "TDS (Tax Deducted at Source) in Tally:\n\nSetup:\n1. F11 → Enable TDS\n2. Create TDS ledger (Nature of Payment)\n3. Set deductee type & PAN\n\nCommon Sections:\n• 194C — Contractor (1–2%)\n• 194J — Professional (10%)\n• 194I — Rent (10%)\n• 192B — Salary (slab rate)\n\nIn Tally:\n• TDS auto-deducts on payment above threshold\n• Reports → TDS Reports → Computation\n• Generate Form 26Q, Form 16/16A",
-  },
-  {
-    keywords: ["journal entry", "journal", "debit", "credit", "dr", "cr", "double entry"],
-    answer: "Journal Entry — Double Entry System:\n\nGolden Rules:\n• Real A/c: Debit what comes in, Credit what goes out\n• Personal A/c: Debit the receiver, Credit the giver\n• Nominal A/c: Debit all expenses/losses, Credit all income/gains\n\nExamples:\n\nCash Sales ₹10,000:\nCash A/c Dr 10,000\n  To Sales A/c 10,000\n\nPurchase on Credit ₹5,000:\nPurchases A/c Dr 5,000\n  To Creditor A/c 5,000\n\nIn Tally: F7 → Journal Voucher",
-  },
-  {
-    keywords: ["ledger", "account", "chart", "group", "sundry", "debtor", "creditor"],
-    answer: "Ledger Creation in Tally Prime:\n\nPath: Gateway → Accounts Info → Ledgers → Create\n\nCommon Groups:\n• Capital — Owner's capital, reserves\n• Loans — Bank loans, term loans\n• Current Assets — Cash, bank, debtors, stock\n• Current Liabilities — Creditors, outstanding\n• Sales Account — All revenue ledgers\n• Purchase Account — All purchase ledgers\n• Indirect Expenses — Rent, salary, power\n• Direct Expenses — Labour, freight on purchase\n\nTip: Wrong group = wrong reports! Always double-check.",
-  },
-  {
-    keywords: ["balance sheet", "assets", "liabilities", "equity", "balance sheet kya"],
-    answer: "Balance Sheet — Financial Position Statement\n\nFormula: Assets = Liabilities + Owner's Equity\n\nAssets Side:\n• Fixed Assets: Land, building, machinery\n• Current Assets: Cash, bank, debtors, stock\n• Investments, loans given\n\nLiabilities Side:\n• Capital & Reserves\n• Long-term Loans\n• Current Liabilities: Creditors, outstanding expenses\n\nIn Tally:\nGateway → Balance Sheet\nPress Alt+F1 for detailed view\nCtrl+B to change period",
-  },
-  {
-    keywords: ["profit loss", "p&l", "income statement", "profit and loss", "revenue", "expense"],
-    answer: "Profit & Loss Account — Performance Statement\n\nStructure:\nRevenue (Sales, other income)\n– Cost of Goods Sold\n= Gross Profit\n– Operating Expenses (salary, rent, depreciation)\n= Operating Profit (EBIT)\n– Interest & Tax\n= Net Profit\n\nKey Ratios:\n• Gross Profit % = GP/Sales × 100\n• Net Profit % = NP/Sales × 100\n\nIn Tally: Gateway → Profit & Loss A/c\nPress F2 to change date range",
-  },
-  {
-    keywords: ["inventory", "stock", "godown", "warehouse", "item", "batch"],
-    answer: "Inventory Management in Tally:\n\nSetup:\n1. F11 → Enable Inventory Features\n2. Create Stock Groups (e.g., Electronics, Clothing)\n3. Create Units of Measure (Nos, Kg, Litre)\n4. Create Stock Items with opening balance\n\nGodowns (Warehouses):\n• Create multiple godowns\n• Track stock location-wise\n• Transfer stock between godowns\n\nReports:\n• Stock Summary — current stock levels\n• Movement Analysis — item-wise movement\n• Reorder levels — low stock alerts\n\nIn Tally: Inventory Info → Stock Items",
-  },
-  {
-    keywords: ["payroll", "salary", "employee", "pf", "esi", "hr"],
-    answer: "Payroll in Tally Prime:\n\nSetup:\n1. F11 → Enable Payroll\n2. Create Pay Heads:\n   • Basic Salary, HRA, DA, Conveyance\n   • PF (12%), ESI (3.25%), PT\n3. Create Employee Masters\n4. Define Salary Structure\n\nMonthly Processing:\n• Payroll Vouchers → Attendance Entry\n• Process salary → auto-deduct PF, ESI, TDS\n• Generate payslips\n\nStatutory Reports:\n• PF ECR Challan\n• ESI Return\n• Form 16 for TDS",
-  },
-  {
-    keywords: ["excel", "vlookup", "hlookup", "sumif", "countif", "pivot", "formula"],
-    answer: "Excel for Accountants — Key Formulas:\n\nLookup:\n• VLOOKUP: =VLOOKUP(A2,Sheet2!A:C,2,0)\n• INDEX MATCH: =INDEX(B:B,MATCH(A2,A:A,0))\n\nSumming:\n• SUMIF: =SUMIF(A:A,\"Sales\",B:B)\n• SUMIFS: multiple criteria\n\nCounting:\n• COUNTIF: =COUNTIF(A:A,\"GST\")\n\nDates:\n• TODAY(), NOW(), DATEDIF()\n\nPivot Table:\n• Insert → PivotTable → drag fields\n• Great for GST reconciliation!\n\nShortcuts: Ctrl+T (table), Alt+= (sum), Ctrl+Shift+L (filter)",
-  },
-  {
-    keywords: ["depreciation", "fixed asset", "wdv", "slm"],
-    answer: "Depreciation in Accounting:\n\nMethods:\n1. SLM (Straight Line Method)\n   • Fixed % on original cost\n   • Formula: Cost / Useful Life\n\n2. WDV (Written Down Value)\n   • % on remaining book value\n   • Used for Income Tax purposes\n\nIn Tally:\n• Create Fixed Asset ledger under Fixed Assets group\n• Create Depreciation ledger under Indirect Expenses\n• Pass Journal entry:\n  Depreciation A/c Dr\n    To Fixed Asset A/c\n\nIncome Tax rates: Buildings 10%, Plant 15%, Computers 40%",
-  },
-  {
-    keywords: ["cash flow", "fund flow", "liquidity", "working capital"],
-    answer: "Cash Flow Statement:\n\nThree Activities:\n1. Operating Activities\n   • Cash from core business operations\n   • Net profit ± working capital changes\n\n2. Investing Activities\n   • Purchase/sale of fixed assets\n   • Investments made/received\n\n3. Financing Activities\n   • Loans taken/repaid\n   • Dividends paid\n   • Capital introduced\n\nWorking Capital = Current Assets – Current Liabilities\n\nIn Tally: Reports → Cash Flow Statement",
-  },
-  {
-    keywords: ["bank reconciliation", "brs", "bank statement", "bank"],
-    answer: "Bank Reconciliation Statement (BRS):\n\nWhy BRS:\n• Match your books with bank statement\n• Identify outstanding cheques & deposits\n• Catch errors & fraud\n\nCommon Differences:\n• Cheques issued but not cleared\n• Cheques deposited but not credited\n• Bank charges not recorded\n• Interest credited by bank\n\nIn Tally Prime:\n1. Banking → Bank Reconciliation\n2. Select bank ledger\n3. Import bank statement (Excel/CSV)\n4. Auto-match transactions\n5. Reconcile manually remaining items",
-  },
-  {
-    keywords: ["ratio", "analysis", "current ratio", "quick ratio", "roe", "roa"],
-    answer: "Financial Ratio Analysis:\n\nLiquidity Ratios:\n• Current Ratio = Current Assets / Current Liabilities (ideal: 2:1)\n• Quick Ratio = (CA – Stock) / CL (ideal: 1:1)\n\nProfitability:\n• GP Ratio = GP / Sales × 100\n• NP Ratio = NP / Sales × 100\n• ROE = Net Profit / Equity × 100\n• ROA = Net Profit / Total Assets × 100\n\nEfficiency:\n• Debtors Turnover = Sales / Debtors\n• Stock Turnover = COGS / Avg Stock\n\nSolvency:\n• Debt-Equity Ratio = Long Term Debt / Equity",
-  },
-  {
-    keywords: ["company create", "new company", "company setup", "create company"],
-    answer: "Create Company in Tally Prime:\n\nSteps:\n1. Open Tally Prime\n2. Press Alt+K → Create Company\n3. Fill details:\n   • Company Name\n   • Mailing Name & Address\n   • State & PIN\n   • Financial Year (1 April)\n   • Base Currency: INR\n4. Enable Features (F11):\n   • GST — Enter GSTIN\n   • TDS — Enable if applicable\n   • Inventory — if stock maintenance needed\n   • Payroll — if salary processing needed\n5. Press Ctrl+A to save",
-  },
-];
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string;
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-function getBotReply(input: string): string {
-  const lower = input.toLowerCase().trim();
+const SYSTEM_PROMPT = `You are "Tally AI Guru", the official smart assistant for Tally Hub — a premium learning and entertainment app. Be friendly, concise, and helpful. Answer in the language the user writes in (Hindi/English/Hinglish).
 
-  // Exact or partial match
-  for (const item of KB) {
-    if (item.keywords.some(k => lower.includes(k))) {
-      return item.answer;
+=== APP OVERVIEW ===
+Tally Hub is a mobile-first app for learning Tally, accounting, GST, Excel, and business skills. It also has entertainment (movies), live sports scores, notes, and more.
+
+=== MOVIES AVAILABLE ===
+1. Pathaan (2023) — Action | Rating 8.2 | 2h 26m | A spy thriller with breathtaking action sequences across the globe.
+2. 3 Idiots (2009) — Comedy/Drama | Rating 9.1 | 2h 50m | Iconic story of friendship, dreams and the broken education system.
+3. Kabhi Khushi Kabhie Gham (2001) — Drama | Rating 8.0 | 3h 30m | A family epic spanning generations, love and sacrifice.
+4. RRR (2022) — Action | Rating 8.7 | 3h 7m | Epic tale of two legendary revolutionaries fighting British rule.
+5. Loot (2012) — Nepali Thriller | Rating 8.5 | 2h 10m | Iconic Nepali heist thriller that redefined Nepali cinema.
+6. Kabaddi (2013) — Nepali Comedy | Rating 8.1 | 2h 5m | Heartwarming village comedy about love and tradition.
+7. Dangal (2016) — Biography | Rating 8.4 | 2h 41m | A father trains his daughters to become world-class wrestlers.
+8. KGF Chapter 2 (2022) — Action | Rating 8.2 | 2h 48m | Rocky's fearsome reputation spreads across the nation.
+9. Baahubali 2 (2017) — Epic Action | Rating 8.5 | 2h 47m | Conclusion to an epic saga of power, betrayal and love.
+10. Pashupati Prasad (2016) — Nepali Drama | Rating 8.3 | 2h 15m | Moving story of hope, dignity and humanity in Kathmandu.
+
+=== COURSES AVAILABLE ===
+1. Tally Prime Complete Course — Instructor: Anil Sharma | 18h | 64 lessons | Rating 4.9 | 12,430 students
+2. Accounting Mastery — Instructor: Pooja Verma | 22h | 80 lessons | Rating 4.8 | 9,212 students
+3. GST Expert Course — Instructor: Rohan Khadka | 12h | 42 lessons | Rating 4.7 | 5,890 students
+4. Excel Master Course — Instructor: Sneha Rai | 15h | 55 lessons | Rating 4.9 | 10,001 students
+5. Computer Basics — Instructor: Ravi Thapa | 8h | 30 lessons | Rating 4.6 | 7,420 students
+6. Business Skills — Instructor: Maya Joshi | 10h | 36 lessons | Rating 4.8 | 4,330 students
+
+=== LEARN CATEGORIES ===
+Accounting Basics (2h 30m, Beginner), Tally Prime Tutorials (5h 10m, Intermediate), GST Learning (3h 45m, Intermediate), Business Skills (4h, All Levels), Computer Skills (2h 15m, Beginner), Excel Tutorials (6h 20m, All Levels), Financial Education (3h 30m, Beginner), Digital Skills (2h 50m, Beginner)
+
+=== APP FEATURES ===
+- Learn: Video lessons, tutorials, structured courses
+- Notes: Create, save, and manage study notes
+- Entertainment: Watch movies (Hindi & Nepali)
+- Live Sports: Cricket and Football live scores
+- Profile: Edit profile, upload photo, manage account
+- Certificates: Earn on course completion
+- Help & Support: Live chat, call, email support
+- WhatsApp Support: +91 98234 15625
+
+=== TALLY & ACCOUNTING KNOWLEDGE ===
+You are an expert in Tally Prime, GST, TDS, accounting entries, Excel formulas, payroll, inventory, balance sheet, P&L, cash flow, BRS, depreciation, financial ratios, and all accounting topics. Answer detailed questions on these topics.
+
+Keep answers concise. Use bullet points and emojis for readability. If asked about movies, list them helpfully. If asked about courses, suggest the best match. Always be encouraging and supportive.`;
+
+async function callGroq(messages: { role: string; content: string }[]): Promise<string> {
+  try {
+    const res = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages,
+        ],
+        temperature: 0.7,
+        max_tokens: 600,
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const errMsg = errBody?.error?.message ?? `HTTP ${res.status}`;
+      if (res.status === 401) return "❌ API key is invalid or expired. Please update the Groq API key.";
+      if (res.status === 429) return "⏳ Too many requests. Please wait a moment and try again.";
+      return `❌ API Error: ${errMsg}`;
     }
-  }
 
-  // Fuzzy: check if any word in input matches any keyword word
-  const words = lower.split(/\s+/);
-  for (const item of KB) {
-    for (const kw of item.keywords) {
-      for (const word of words) {
-        if (word.length > 3 && kw.includes(word)) {
-          return item.answer;
-        }
-      }
-    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content ?? "Sorry, I couldn't get a response. Please try again.";
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return `Network error: ${msg}. Please check your connection. 🔌`;
   }
-
-  return "That's an interesting question! 🤔\n\nI specialise in:\n• Tally Prime (vouchers, setup, shortcuts)\n• GST (returns, TDS, ITC)\n• Accounting (journal entries, ledgers, reports)\n• Excel (formulas, pivot tables)\n• Finance (balance sheet, ratios)\n\nCould you rephrase or ask about one of these topics? मैं हिंदी में भी समझता हूँ! 😊";
 }
 
 /* ─── ChatBot Component ─── */
@@ -128,15 +98,18 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "0",
-      role: "bot",
-      text: "Namaste! 🙏 I'm Tally AI Guru.\n\nAsk me anything about Tally, GST, accounting entries, Excel formulas, or finance — in English or Hindi!\n\nTry tapping one of the quick questions below 👇",
+      role: "assistant",
+      text: "Namaste! 🙏 I'm Tally AI Guru — your smart assistant for this app.\n\nAsk me anything:\n• 🎬 Movies available\n• 📚 Courses & learning\n• 🧾 Tally, GST, Accounting\n• 📊 Excel, Finance\n• ❓ App features & help\n\nTap a quick question below 👇",
       time: getTime(),
     },
   ]);
-  const [input, setInput]   = useState("");
-  const [typing, setTyping] = useState(false);
-  const bottomRef           = useRef<HTMLDivElement>(null);
-  const inputRef            = useRef<HTMLInputElement>(null);
+  const [input, setInput]     = useState("");
+  const [typing, setTyping]   = useState(false);
+  const bottomRef             = useRef<HTMLDivElement>(null);
+  const inputRef              = useRef<HTMLInputElement>(null);
+
+  // Keep last 10 messages for context (to stay within token limits)
+  const historyRef = useRef<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -147,8 +120,7 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t);
   }, []);
 
-  /* ── Core send function — takes text directly, no stale closure ── */
-  const sendMessage = useCallback((text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
 
@@ -162,30 +134,41 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
     setInput("");
     setTyping(true);
 
-    const delay = 700 + Math.random() * 600;
-    setTimeout(() => {
-      const botMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "bot",
-        text: getBotReply(trimmed),
-        time: getTime(),
-      };
-      setMessages(prev => [...prev, botMsg]);
-      setTyping(false);
-    }, delay);
+    // Add to history
+    historyRef.current = [
+      ...historyRef.current,
+      { role: "user", content: trimmed },
+    ].slice(-10);
+
+    const reply = await callGroq(historyRef.current);
+
+    // Add bot reply to history
+    historyRef.current = [
+      ...historyRef.current,
+      { role: "assistant", content: reply },
+    ].slice(-10);
+
+    const botMsg: Message = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      text: reply,
+      time: getTime(),
+    };
+    setMessages(prev => [...prev, botMsg]);
+    setTyping(false);
   }, [typing]);
 
   const handleSend = () => sendMessage(input);
 
   const CHIPS = [
-    "How to create a company?",
-    "GST Returns",
-    "Journal Entry",
-    "Tally Shortcuts",
-    "Balance Sheet",
-    "TDS in Tally",
+    "Which movies are available?",
+    "Best course for beginners",
+    "How to file GST return?",
+    "Tally shortcuts",
+    "Journal entry example",
+    "App features",
     "Excel VLOOKUP",
-    "Payroll Setup",
+    "Contact support",
   ];
 
   return (
@@ -216,7 +199,7 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
             <p className="font-black text-white text-base leading-tight">Tally AI Guru</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
-              <p className="text-xs text-white/85">Online · Powered by Knowledge Base</p>
+              <p className="text-xs text-white/85">Online · Powered by Groq AI</p>
             </div>
           </div>
           <button onClick={onClose}
@@ -235,19 +218,16 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
               className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
-              {/* Avatar */}
               <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
-                msg.role === "bot"
+                msg.role === "assistant"
                   ? "bg-gradient-to-br from-amber-400 to-orange-500"
                   : "bg-gradient-to-br from-blue-500 to-violet-600"
               }`}>
-                {msg.role === "bot"
+                {msg.role === "assistant"
                   ? <Bot className="h-4 w-4 text-white" />
-                  : <User className="h-4 w-4 text-white" />
-                }
+                  : <User className="h-4 w-4 text-white" />}
               </div>
 
-              {/* Bubble */}
               <div className={`max-w-[80%] flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
                 <div
                   className={`px-4 py-3 text-sm leading-relaxed whitespace-pre-line shadow-sm ${
@@ -268,7 +248,6 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
             </motion.div>
           ))}
 
-          {/* Typing indicator */}
           <AnimatePresence>
             {typing && (
               <motion.div
@@ -313,7 +292,7 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Ask about Tally, GST, accounting…"
+            placeholder="Ask about movies, courses, Tally, GST…"
             className="flex-1 h-12 px-4 rounded-2xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
             style={{ background: "var(--color-card)" }}
           />
@@ -325,8 +304,7 @@ export function ChatBot({ onClose }: { onClose: () => void }) {
           >
             {typing
               ? <Loader2 className="h-5 w-5 animate-spin" />
-              : <Send className="h-5 w-5" />
-            }
+              : <Send className="h-5 w-5" />}
           </button>
         </div>
       </motion.div>

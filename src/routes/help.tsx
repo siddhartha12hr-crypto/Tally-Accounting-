@@ -131,8 +131,8 @@ function HelpSupport() {
 
   const handleContact = (label: string) => {
     if (label === "Live Chat")  { setShowChat(true); return; }
-    if (label === "Call Us")    { window.location.href = "tel:+911234567890"; return; }
-    if (label === "Email")      { window.location.href = "mailto:support@tallyhub.com"; return; }
+    if (label === "Call Us")    { window.open("tel:+9779823415625", "_self"); return; }
+    if (label === "Email")      { window.open("mailto:contact.tallynp@gmail.com", "_self"); return; }
   };
 
   const contactOptions = [
