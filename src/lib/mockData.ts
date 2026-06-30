@@ -28,10 +28,12 @@ export const heroSlides = [
 ];
 
 export const quickActions = [
-  { label: "Videos", icon: "PlayCircle", to: "/learn" },
-  { label: "Live Sports", icon: "Trophy", to: "/sports" },
-  { label: "Movies", icon: "Film", to: "/entertainment" },
-  { label: "Courses", icon: "GraduationCap", to: "/courses" },
+  { label: "Learn Now",     icon: "BookOpen",      to: "/learn",          gradient: "linear-gradient(135deg,#1a3a8f,#0e6b8f)", bg: "#e8f0fe", external: false },
+  { label: "Notes",         icon: "FileText",       to: "/notes",          gradient: "linear-gradient(135deg,#ea580c,#f59e0b)", bg: "#fff7ed", external: false },
+  { label: "Courses",       icon: "GraduationCap",  to: "/courses",        gradient: "linear-gradient(135deg,#7c3aed,#a855f7)", bg: "#f5f3ff", external: false },
+  { label: "Entertainment", icon: "Film",            to: "/entertainment",  gradient: "linear-gradient(135deg,#db2777,#f43f5e)", bg: "#fff1f2", external: false },
+  { label: "Live Sports",   icon: "Trophy",          to: "/sports",         gradient: "linear-gradient(135deg,#059669,#10b981)", bg: "#f0fdf4", external: false },
+  { label: "Support",       icon: "MessageCircle",   to: "https://wa.me/9823415625?text=Hello%20sir%2C%20i%20need%20some%20help%20with%20Tally", gradient: "linear-gradient(135deg,#16a34a,#22c55e)", bg: "#f0fdf4", external: true },
 ] as const;
 
 export const learnCategories = [

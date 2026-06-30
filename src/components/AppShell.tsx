@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { BottomNav } from "./BottomNav";
 import { MountainBg } from "./MountainBg";
 import { Toaster } from "./ui/sonner";
+import { FloatingChatButton } from "./FloatingChatButton";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </motion.main>
       <BottomNav />
+      <FloatingChatButton />
       <Toaster position="top-center" />
     </div>
   );

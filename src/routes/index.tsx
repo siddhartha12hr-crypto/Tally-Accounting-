@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
 import { quickActions } from "@/lib/mockData";
-import { ChatBot } from "@/components/ChatBot";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, TrendingUp, Clock, Award, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
+import logoImg from "../../imgfile/logo.png";
+import { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, MessageCircle, Clock, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
 
-const iconMap = { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap };
+const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, Trophy, Film, GraduationCap, MessageCircle };
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,9 +58,8 @@ function Home() {
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
         <div className="mx-auto max-w-2xl px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-glow bg-gradient-to-br from-orange-500 to-red-600">
-              <img src="https://api.dicebear.com/7.x/shapes/svg?seed=TallyHub&backgroundColor=ff9933,dc143c&scale=80"
-                alt="Tally Hub Logo" className="h-full w-full object-cover" />
+            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-glow">
+              <img src={logoImg} alt="Tally Hub Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-lg font-black leading-tight">Tally Hub</h1>
@@ -173,149 +172,42 @@ function Home() {
         </motion.div>
 
         <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-black">Quick Access</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Start learning instantly</p>
-            </div>
+          <div className="mb-4">
+            <h2 className="text-xl font-black">Quick Access</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Start learning instantly</p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {quickActions.map((a, idx) => {
               const Icon = iconMap[a.icon];
-              return (
-                <Link key={a.label} to={a.to}>
-                  <motion.div
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.06, type: "spring", stiffness: 300 }}
-                    className="relative flex aspect-square flex-col items-center justify-center gap-3 rounded-2xl glass shadow-card hover:shadow-elegant overflow-hidden group"
-                  >
-                    {/* Background gradient on hover */}
-                    <div className="absolute inset-0 gradient-saffron opacity-0 group-hover:opacity-5 transition-opacity" />
-                    
-                    <div className="relative grid h-14 w-14 place-items-center rounded-2xl gradient-saffron text-white shadow-glow group-hover:shadow-elegant transition-all">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <span className="relative text-xs font-bold text-center leading-tight">{a.label}</span>
-                  </motion.div>
-                </Link>
+              const card = (
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05, type: "spring", stiffness: 300 }}
+                  className="relative flex flex-col items-center justify-center gap-2.5 rounded-2xl overflow-hidden shadow-card hover:shadow-elegant"
+                  style={{ background: a.bg, aspectRatio: "1 / 1", padding: "0" }}
+                >
+                  <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+                    style={{ background: `${a.gradient.replace("135deg", "160deg")}22` }} />
+                  <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center shadow-md"
+                    style={{ background: a.gradient }}>
+                    <Icon className="h-7 w-7 text-white" strokeWidth={1.8} />
+                  </div>
+                  <span className="relative text-[11px] font-black text-center leading-tight px-1"
+                    style={{ color: "#1c1c2e" }}>
+                    {a.label}
+                  </span>
+                </motion.div>
+              );
+
+              return a.external ? (
+                <a key={a.label} href={a.to} target="_blank" rel="noopener noreferrer">{card}</a>
+              ) : (
+                <Link key={a.label} to={a.to as any}>{card}</Link>
               );
             })}
-          </div>
-        </section>
-
-        <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-black flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" /> Continue Learning
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Pick up where you left off</p>
-            </div>
-            <Link to="/courses" className="text-xs font-semibold text-primary hover:underline">See all</Link>
-          </div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            whileHover={{ y: -4 }}
-            className="relative rounded-3xl glass p-6 shadow-card hover:shadow-elegant transition-all overflow-hidden group"
-          >
-            {/* Animated background */}
-            <div className="absolute inset-0 gradient-royal opacity-0 group-hover:opacity-5 transition-opacity" />
-            
-            <div className="relative flex items-center gap-4">
-              <div className="relative grid h-20 w-20 place-items-center rounded-2xl gradient-royal text-white font-black text-xl shadow-elegant">
-                TP
-                <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-green-500 border-4 border-background flex items-center justify-center">
-                  <span className="text-xs">✓</span>
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex-1">
-                    <p className="text-lg font-black">Tally Prime Complete Course</p>
-                    <p className="text-sm text-muted-foreground mt-1">Lesson 23 of 64 · GST Setup</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: "35%" }}
-                      transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                      className="h-full gradient-saffron"
-                    />
-                  </div>
-                  <span className="text-sm font-black text-primary">35%</span>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => navigate({ to: "/courses" })} className="relative mt-5 w-full rounded-xl gradient-saffron px-4 py-3.5 text-sm font-bold text-white shadow-glow hover:shadow-elegant transition-all flex items-center justify-center gap-2 group/btn">
-              Resume Learning
-              <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-          </motion.div>
-        </section>
-
-        <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-black flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" /> Trending Now
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Most popular this week</p>
-            </div>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 snap-x scrollbar-hide">
-            {["GST Filing 2026", "Excel Pivot Mastery", "Tally Shortcuts", "Nepali Accounting"].map((t, idx) => (
-              <motion.div
-                key={t}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.08, type: "spring", stiffness: 200 }}
-                whileHover={{ y: -6, scale: 1.02 }}
-                className="relative snap-start min-w-[220px] rounded-3xl gradient-hero p-6 text-white shadow-elegant hover:shadow-glow transition-all cursor-pointer overflow-hidden group"
-              >
-                {/* Animated gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <p className="text-base font-bold mb-2">{t}</p>
-                  <p className="text-xs opacity-90 mb-4">12,430 students enrolled</p>
-                  <div className="flex items-center gap-2 text-xs font-semibold">
-                    <span>Start Learning</span>
-                    <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-                
-                {/* Corner accent */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-[100px]" />
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-8 mb-3 rounded-2xl gradient-gold p-6 shadow-card">
-          <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20 backdrop-blur text-white shadow-glow">
-              <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-black text-accent-foreground">Tally AI Guru</p>
-              <p className="text-sm text-accent-foreground/80">Ask anything in Hindi or Nepali</p>
-            </div>
-            <button onClick={() => setShowChat(true)}
-              className="rounded-xl bg-white/95 px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-card hover:bg-white transition-colors active:scale-95">
-              Chat Now
-            </button>
           </div>
         </section>
       </div>
