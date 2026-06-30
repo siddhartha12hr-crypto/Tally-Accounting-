@@ -17,6 +17,9 @@ import {
   Users,
   Shield,
   ArrowLeft,
+  Key,
+  MessageCircle,
+  Smartphone,
 } from "lucide-react";
 
 export const Route = createFileRoute("/payment/$contentId")({
@@ -36,14 +39,13 @@ function PaymentPage() {
   const { videos, courses } = useData();
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "upi">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "purchase">("whatsapp");
   
-  // Form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [upiId, setUpiId] = useState("");
+  // Purchase code state
+  const [purchaseCode, setPurchaseCode] = useState("");
+  
+  // WhatsApp phone number (admin)
+  const WHATSAPP_NUMBER = "+9779823415625"; // Nepal number
 
   // Find the content
   const video = videos.find(v => v.id === contentId);
@@ -94,103 +96,90 @@ function PaymentPage() {
 
   const contentType = video ? 'video' : 'course';
 
-  const handlePayment = async (e: React.FormEvent) => {
+  // Purchase codes database (in production, these would be in backend)
+  const PURCHASE_CODES: Record<string, string[]> = {
+    // Format: courseId: [code1, code2, code3, ...]
+    // Add purchase codes for each course here
+  };
+
+  const handlePurchaseCode = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate based on payment method
-    if (paymentMethod === "card") {
-      if (!cardNumber.trim() || cardNumber.length < 16) {
-        toast.error("Please enter a valid card number");
-        return;
-      }
-      if (!cardName.trim()) {
-        toast.error("Please enter cardholder name");
-        return;
-      }
-      if (!expiryDate.trim() || expiryDate.length < 5) {
-        toast.error("Please enter valid expiry date (MM/YY)");
-        return;
-      }
-      if (!cvv.trim() || cvv.length < 3) {
-        toast.error("Please enter valid CVV");
-        return;
-      }
-    } else {
-      if (!upiId.trim() || !upiId.includes("@")) {
-        toast.error("Please enter a valid UPI ID");
-        return;
-      }
+    if (!purchaseCode.trim()) {
+      toast.error("Please enter a purchase code");
+      return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if purchase code is valid
+      const validCodes = PURCHASE_CODES[contentId] || [];
+      const isValid = validCodes.includes(purchaseCode.trim().toUpperCase());
 
-      // In production, this would call your payment gateway API
-      // For demo, we'll just mark as purchased
-      purchaseContent(contentId, contentType);
-      
-      toast.success("Payment successful! 🎉");
-      
-      // Redirect to watch page
-      setTimeout(() => {
-        navigate({ to: `/watch/${contentId}` });
-      }, 500);
-      
+      if (!isValid) {
+        // For demo, accept any 8+ character code
+        if (purchaseCode.length >= 8) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          purchaseContent(contentId, contentType);
+          toast.success("Course unlocked successfully! 🎉");
+          
+          setTimeout(() => {
+            navigate({ to: `/watch/${contentId}` });
+          }, 500);
+        } else {
+          toast.error("Invalid purchase code. Please check and try again.");
+        }
+      } else {
+        // Valid code from database
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        purchaseContent(contentId, contentType);
+        toast.success("Course unlocked successfully! 🎉");
+        
+        setTimeout(() => {
+          navigate({ to: `/watch/${contentId}` });
+        }, 500);
+      }
     } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      console.error("Purchase code error:", error);
+      toast.error("Purchase code validation failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleDemoPayment = async () => {
+  const handleWhatsAppPurchase = () => {
+    const message = `Hi! I want to purchase:\n\n*${content.title}*\nPrice: ${content.price}\n\nPlease send me the purchase code.\n\nUser: ${user?.username || user?.email || 'Guest'}`;
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Clean phone number (remove all non-digits)
+    const cleanNumber = WHATSAPP_NUMBER.replace(/[^0-9]/g, '');
+    
+    // Use WhatsApp API format - this works on both mobile and desktop
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedMessage}`;
+    
+    // Open in new window/tab
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    toast.success("Opening WhatsApp...");
+  };
+
+  const handleDemoPurchase = async () => {
     setIsProcessing(true);
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       purchaseContent(contentId, contentType);
-      toast.success("Demo payment successful! 🎉");
+      toast.success("Demo purchase successful! 🎉");
       
       setTimeout(() => {
         navigate({ to: `/watch/${contentId}` });
       }, 500);
     } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      console.error("Purchase error:", error);
+      toast.error("Purchase failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  // Format card number
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length) {
-      return parts.join(" ");
-    } else {
-      return value;
-    }
-  };
-
-  // Format expiry date
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    if (v.length >= 2) {
-      return v.substring(0, 2) + "/" + v.substring(2, 4);
-    }
-    return v;
   };
 
   return (
@@ -216,179 +205,216 @@ function PaymentPage() {
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-12 w-12 rounded-full gradient-hero flex items-center justify-center">
-                  <CreditCard className="h-6 w-6 text-white" />
+                  <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black">Complete Payment</h1>
+                  <h1 className="text-2xl font-black">Purchase Course</h1>
                   <p className="text-sm text-muted-foreground">
-                    Secure checkout powered by industry standards
+                    Buy via WhatsApp or enter purchase code
                   </p>
                 </div>
               </div>
 
               {/* Payment Method Selection */}
               <div className="mb-6">
-                <Label className="text-sm font-bold mb-3 block">Payment Method</Label>
+                <Label className="text-sm font-bold mb-3 block">Purchase Method</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => setPaymentMethod("card")}
+                    onClick={() => setPaymentMethod("whatsapp")}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === "card"
+                      paymentMethod === "whatsapp"
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <CreditCard className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-sm font-bold">Credit/Debit Card</p>
+                    <MessageCircle className="h-6 w-6 mx-auto mb-2 text-green-500" />
+                    <p className="text-sm font-bold">Buy on WhatsApp</p>
                   </button>
                   <button
-                    onClick={() => setPaymentMethod("upi")}
+                    onClick={() => setPaymentMethod("purchase")}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === "upi"
+                      paymentMethod === "purchase"
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <svg className="h-6 w-6 mx-auto mb-2" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M6 6h12v12H6z"/>
-                    </svg>
-                    <p className="text-sm font-bold">UPI</p>
+                    <Key className="h-6 w-6 mx-auto mb-2" />
+                    <p className="text-sm font-bold">Purchase Code</p>
                   </button>
                 </div>
               </div>
 
               {/* Payment Form */}
-              <form onSubmit={handlePayment} className="space-y-5">
-                {paymentMethod === "card" ? (
-                  <>
-                    {/* Card Number */}
-                    <div>
-                      <Label htmlFor="cardNumber" className="text-sm font-bold">
-                        Card Number
-                      </Label>
-                      <Input
-                        id="cardNumber"
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        className="mt-2 rounded-xl font-mono"
-                        disabled={isProcessing}
-                      />
+              {paymentMethod === "whatsapp" ? (
+                <div className="space-y-5">
+                  {/* WhatsApp Info */}
+                  <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-6 text-center">
+                    <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <MessageCircle className="h-8 w-8 text-green-500" />
                     </div>
+                    <h3 className="text-lg font-black mb-2">Purchase via WhatsApp</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Contact us on WhatsApp to complete your purchase. You'll receive a purchase code after payment.
+                    </p>
+                    
+                    {/* WhatsApp Number */}
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background border border-border">
+                      <Smartphone className="h-4 w-4" />
+                      <span className="font-mono font-bold">{WHATSAPP_NUMBER}</span>
+                    </div>
+                  </div>
 
-                    {/* Cardholder Name */}
-                    <div>
-                      <Label htmlFor="cardName" className="text-sm font-bold">
-                        Cardholder Name
-                      </Label>
-                      <Input
-                        id="cardName"
-                        type="text"
-                        value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
-                        placeholder="John Doe"
-                        className="mt-2 rounded-xl"
-                        disabled={isProcessing}
-                      />
-                    </div>
-
-                    {/* Expiry and CVV */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiryDate" className="text-sm font-bold">
-                          Expiry Date
-                        </Label>
-                        <Input
-                          id="expiryDate"
-                          type="text"
-                          value={expiryDate}
-                          onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                          placeholder="MM/YY"
-                          maxLength={5}
-                          className="mt-2 rounded-xl font-mono"
-                          disabled={isProcessing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv" className="text-sm font-bold">
-                          CVV
-                        </Label>
-                        <Input
-                          id="cvv"
-                          type="password"
-                          value={cvv}
-                          onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                          placeholder="123"
-                          maxLength={4}
-                          className="mt-2 rounded-xl font-mono"
-                          disabled={isProcessing}
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* UPI ID */}
-                    <div>
-                      <Label htmlFor="upiId" className="text-sm font-bold">
-                        UPI ID
-                      </Label>
-                      <Input
-                        id="upiId"
-                        type="text"
-                        value={upiId}
-                        onChange={(e) => setUpiId(e.target.value)}
-                        placeholder="yourname@upi"
-                        className="mt-2 rounded-xl"
-                        disabled={isProcessing}
-                      />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Enter your UPI ID (e.g., 9876543210@paytm)
+                  {/* Order Details Preview */}
+                  <div className="rounded-xl glass p-4 border border-border">
+                    <p className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wide">
+                      Message Preview
+                    </p>
+                    <div className="bg-green-500/5 rounded-lg p-3 text-sm">
+                      <p className="mb-2">Hi! I want to purchase:</p>
+                      <p className="font-bold mb-2">{content.title}</p>
+                      <p>Price: <span className="font-bold text-primary">{content.price}</span></p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        User: {user?.username || user?.email || 'Guest'}
                       </p>
                     </div>
-                  </>
-                )}
+                  </div>
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={isProcessing}
-                  className="w-full rounded-xl gradient-hero text-white shadow-glow font-bold py-6 text-base"
-                >
-                  {isProcessing ? (
-                    "Processing Payment..."
-                  ) : (
-                    <>
-                      <Lock className="h-5 w-5 mr-2" />
-                      Pay {content.price}
-                    </>
-                  )}
-                </Button>
+                  {/* Open WhatsApp Button */}
+                  <Button
+                    type="button"
+                    onClick={handleWhatsAppPurchase}
+                    className="w-full rounded-xl bg-green-500 hover:bg-green-600 text-white shadow-glow font-bold py-6 text-base"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Open WhatsApp
+                  </Button>
 
-                {/* Demo Payment */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDemoPayment}
-                  disabled={isProcessing}
-                  className="w-full rounded-xl font-bold"
-                >
-                  Demo Payment (Skip Form)
-                </Button>
-              </form>
+                  {/* Instructions */}
+                  <div className="rounded-xl bg-muted/50 p-4">
+                    <p className="text-xs font-bold mb-2">Steps to purchase:</p>
+                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Click "Open WhatsApp" button above</li>
+                      <li>Send the pre-filled message to us</li>
+                      <li>Complete payment via your preferred method</li>
+                      <li>Receive purchase code instantly</li>
+                      <li>Enter code to unlock content</li>
+                    </ol>
+                  </div>
+
+                  {/* Back to Purchase Code */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPaymentMethod("purchase")}
+                    className="w-full rounded-xl font-bold"
+                  >
+                    <Key className="h-5 w-5 mr-2" />
+                    Already have a purchase code? Enter it
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handlePurchaseCode} className="space-y-5">
+                  {/* Info Box */}
+                  <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
+                    <div className="flex gap-3">
+                      <div className="shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Key className="h-4 w-4 text-blue-500" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-blue-600 mb-1">
+                          Have a purchase code?
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Enter the purchase code you received after payment to unlock this {contentType} instantly.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Purchase Code Input */}
+                  <div>
+                    <Label htmlFor="purchaseCode" className="text-sm font-bold">
+                      Purchase Code
+                    </Label>
+                    <Input
+                      id="purchaseCode"
+                      type="text"
+                      value={purchaseCode}
+                      onChange={(e) => setPurchaseCode(e.target.value.toUpperCase())}
+                      placeholder="Enter your 8-digit code"
+                      className="mt-2 rounded-xl font-mono text-center text-lg tracking-widest"
+                      disabled={isProcessing}
+                      maxLength={16}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Code format: XXXXXXXX (8+ characters)
+                    </p>
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full rounded-xl gradient-hero text-white shadow-glow font-bold py-6 text-base"
+                  >
+                    {isProcessing ? (
+                      "Validating Code..."
+                    ) : (
+                      <>
+                        <Lock className="h-5 w-5 mr-2" />
+                        Unlock {contentType === 'course' ? 'Course' : 'Video'}
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Demo Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDemoPurchase}
+                    disabled={isProcessing}
+                    className="w-full rounded-xl font-bold"
+                  >
+                    🎭 Demo Purchase (Skip Code)
+                  </Button>
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Don't have a code?
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Switch to WhatsApp */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPaymentMethod("whatsapp")}
+                    className="w-full rounded-xl font-bold border-green-500/50 hover:bg-green-500/10"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2 text-green-500" />
+                    Buy on WhatsApp
+                  </Button>
+                </form>
+              )}
 
               {/* Security Badge */}
               <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Shield className="h-4 w-4" />
-                  <span>Secure Payment</span>
+                  <span>Secure Purchase</span>
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-1">
                   <Lock className="h-4 w-4" />
-                  <span>256-bit SSL Encrypted</span>
+                  <span>Instant Delivery</span>
                 </div>
               </div>
             </motion.div>

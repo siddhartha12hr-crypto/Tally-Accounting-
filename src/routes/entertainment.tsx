@@ -34,7 +34,7 @@ function Entertainment() {
     return list;
   }, [activeGenre, query]);
 
-  const goToDetail = (id: string) => navigate({ to: "/entertainment/$movieId", params: { movieId: id } });
+  const goToDetail = (id: string) => navigate({ to: "/movie/$movieId", params: { movieId: id } });
 
   return (
     <PinLock title="Entertainment Access">

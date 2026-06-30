@@ -28,7 +28,7 @@ function getSaved(): string[] {
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, signup, isAuthenticated } = useAuth();
 
   const [identifier,   setIdentifier]   = useState("");
   const [password,     setPassword]     = useState("");
@@ -80,6 +80,53 @@ function LoginPage() {
       navigate({ to: "/" });
     } else {
       setErrorMsg(result.message || "Login failed. Please try again.");
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setErrorMsg("");
+    setIdentifier("demo");
+    setPassword("demo123");
+    
+    setIsLoading(true);
+    
+    // Try to login first
+    let result = await login("demo", "demo123");
+    
+    // If user not found, create the demo account automatically
+    if (!result.success && result.message?.includes("not found")) {
+      toast.info("Creating demo account...");
+      
+      // Import signup function from context
+      const signupResult = await signup({
+        fullName: "Demo User",
+        username: "demo",
+        email: "demo@example.com",
+        phone: "1234567890",
+        password: "demo123",
+      });
+      
+      if (signupResult.success) {
+        toast.success("Demo account created and logged in!");
+        setIsLoading(false);
+        navigate({ to: "/" });
+        return;
+      } else {
+        setErrorMsg(signupResult.message || "Failed to create demo account");
+        toast.error(signupResult.message || "Failed to create demo account");
+        setIsLoading(false);
+        return;
+      }
+    }
+    
+    setIsLoading(false);
+
+    if (result.success) {
+      toast.success("Logged in with demo account!");
+      navigate({ to: "/" });
+    } else {
+      setErrorMsg(result.message || "Login failed. Please try again.");
+      toast.error(result.message || "Login failed");
     }
   };
 
@@ -196,6 +243,17 @@ function LoginPage() {
                 ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Signing in…</>
                 : "Login"}
             </Button>
+
+            {/* Demo Account Button */}
+            <Button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full rounded-xl border-2 font-bold"
+            >
+              🎭 Use Demo Account
+            </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
@@ -209,6 +267,9 @@ function LoginPage() {
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
           🔒 Your credentials are stored securely
+        </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          💡 Demo account auto-creates: <span className="font-bold">demo</span> / <span className="font-bold">demo123</span>
         </p>
       </motion.div>
     </div>

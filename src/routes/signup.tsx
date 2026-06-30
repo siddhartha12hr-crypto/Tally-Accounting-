@@ -97,6 +97,35 @@ function SignupPage() {
     }
   };
 
+  /* ── Create Demo Account ── */
+  const handleCreateDemoAccount = async () => {
+    setIsLoading(true);
+    
+    const demoData = {
+      fullName: "Demo User",
+      username: "demo",
+      email: "demo@example.com",
+      phone: "1234567890",
+      password: "demo123",
+    };
+
+    const result = await signup(demoData);
+    setIsLoading(false);
+
+    if (result.success) {
+      toast.success("Demo account created and logged in!");
+      navigate({ to: "/" });
+    } else {
+      if (result.message?.includes("already")) {
+        // Demo account already exists, try to login
+        toast.info("Demo account already exists. Redirecting to login...");
+        setTimeout(() => navigate({ to: "/login" }), 1000);
+      } else {
+        toast.error(result.message || "Failed to create demo account");
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8"
       style={{ background: "var(--color-background)" }}>
@@ -282,6 +311,17 @@ function SignupPage() {
                 ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating account…</>
                 : "Create Account"}
             </Button>
+
+            {/* Demo Account Button */}
+            <Button
+              type="button"
+              onClick={handleCreateDemoAccount}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full rounded-xl border-2 font-bold"
+            >
+              🎭 Create Demo Account
+            </Button>
           </form>
 
           <div className="mt-5 text-center text-sm">
@@ -295,6 +335,9 @@ function SignupPage() {
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
           🔒 Your data is saved securely
+        </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          💡 Demo account creates: <span className="font-bold">demo</span> / <span className="font-bold">demo123</span>
         </p>
       </motion.div>
     </div>

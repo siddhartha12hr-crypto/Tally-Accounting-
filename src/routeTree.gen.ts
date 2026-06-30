@@ -24,7 +24,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
-import { Route as EntertainmentMovieIdRouteImport } from './routes/entertainment.$movieId'
+import { Route as MovieMovieIdRouteImport } from './routes/movie.$movieId'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -101,10 +101,10 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
   path: '/$noteId',
   getParentRoute: () => NotesRoute,
 } as any)
-const EntertainmentMovieIdRoute = EntertainmentMovieIdRouteImport.update({
-  id: '/$movieId',
-  path: '/$movieId',
-  getParentRoute: () => EntertainmentRoute,
+const MovieMovieIdRoute = MovieMovieIdRouteImport.update({
+  id: '/movie/$movieId',
+  path: '/movie/$movieId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -112,7 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRouteWithChildren
+  '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -120,7 +120,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -130,7 +130,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRouteWithChildren
+  '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -138,7 +138,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -149,7 +149,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
-  '/entertainment': typeof EntertainmentRouteWithChildren
+  '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -157,7 +157,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
-  '/entertainment/$movieId': typeof EntertainmentMovieIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -177,7 +177,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
-    | '/entertainment/$movieId'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -195,7 +195,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
-    | '/entertainment/$movieId'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -213,7 +213,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
-    | '/entertainment/$movieId'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -224,7 +224,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
-  EntertainmentRoute: typeof EntertainmentRouteWithChildren
+  EntertainmentRoute: typeof EntertainmentRoute
   HelpRoute: typeof HelpRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
@@ -232,6 +232,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
+  MovieMovieIdRoute: typeof MovieMovieIdRoute
   PaymentContentIdRoute: typeof PaymentContentIdRoute
   WatchVideoIdRoute: typeof WatchVideoIdRoute
 }
@@ -343,27 +344,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof NotesRoute
     }
-    '/entertainment/$movieId': {
-      id: '/entertainment/$movieId'
-      path: '/$movieId'
-      fullPath: '/entertainment/$movieId'
-      preLoaderRoute: typeof EntertainmentMovieIdRouteImport
-      parentRoute: typeof EntertainmentRoute
+    '/movie/$movieId': {
+      id: '/movie/$movieId'
+      path: '/movie/$movieId'
+      fullPath: '/movie/$movieId'
+      preLoaderRoute: typeof MovieMovieIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface EntertainmentRouteChildren {
-  EntertainmentMovieIdRoute: typeof EntertainmentMovieIdRoute
-}
-
-const EntertainmentRouteChildren: EntertainmentRouteChildren = {
-  EntertainmentMovieIdRoute: EntertainmentMovieIdRoute,
-}
-
-const EntertainmentRouteWithChildren = EntertainmentRoute._addFileChildren(
-  EntertainmentRouteChildren,
-)
 
 interface NotesRouteChildren {
   NotesNoteIdRoute: typeof NotesNoteIdRoute
@@ -380,7 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
-  EntertainmentRoute: EntertainmentRouteWithChildren,
+  EntertainmentRoute: EntertainmentRoute,
   HelpRoute: HelpRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
@@ -388,6 +377,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
+  MovieMovieIdRoute: MovieMovieIdRoute,
   PaymentContentIdRoute: PaymentContentIdRoute,
   WatchVideoIdRoute: WatchVideoIdRoute,
 }
