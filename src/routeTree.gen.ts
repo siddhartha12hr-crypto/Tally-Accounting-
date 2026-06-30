@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchVideoIdRouteImport } from './routes/watch.$videoId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
+import { Route as MovieMovieIdRouteImport } from './routes/movie.$movieId'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -94,6 +95,11 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
   path: '/$noteId',
   getParentRoute: () => NotesRoute,
 } as any)
+const MovieMovieIdRoute = MovieMovieIdRouteImport.update({
+  id: '/movie/$movieId',
+  path: '/movie/$movieId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sports': typeof SportsRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/sports'
+    | '/movie/$movieId'
     | '/notes/$noteId'
     | '/payment/$contentId'
     | '/watch/$videoId'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   SportsRoute: typeof SportsRoute
+  MovieMovieIdRoute: typeof MovieMovieIdRoute
   PaymentContentIdRoute: typeof PaymentContentIdRoute
   WatchVideoIdRoute: typeof WatchVideoIdRoute
 }
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof NotesRoute
     }
+    '/movie/$movieId': {
+      id: '/movie/$movieId'
+      path: '/movie/$movieId'
+      fullPath: '/movie/$movieId'
+      preLoaderRoute: typeof MovieMovieIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -336,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   SportsRoute: SportsRoute,
+  MovieMovieIdRoute: MovieMovieIdRoute,
   PaymentContentIdRoute: PaymentContentIdRoute,
   WatchVideoIdRoute: WatchVideoIdRoute,
 }
