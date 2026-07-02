@@ -244,30 +244,6 @@ function TallyQuiz() {
       </div>
 
       {/* ── Progress Tracking Section ────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl glass p-4 shadow-card"
-      >
-        <h3 className="text-sm font-black mb-3">Your Progress</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Quizzes Completed</span>
-            <span className="font-bold">0</span>
-          </div>
-          <div className="w-full h-2 rounded-full bg-muted">
-            <div className="h-full rounded-full gradient-hero" style={{ width: "0%" }} />
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Average Score</span>
-            <span className="font-bold">—</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Total Marks Earned</span>
-            <span className="font-bold">0</span>
-          </div>
-        </div>
-      </motion.div>
     </AppShell>
   );
 }

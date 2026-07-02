@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Edit, Trash2, Star, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useData } from "@/contexts/DataContext";
+import type { Movie } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,69 +24,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface Movie {
-  id: string;
-  title: string;
-  genre: string;
-  rating: number;
-  description: string;
-  thumbnail: string;
-  url: string;
-  year: string;
-  duration: string;
-}
-
 export function AdminMovies() {
-  const [movies, setMovies] = useState<Movie[]>([
-    {
-      id: "1",
-      title: "Pathaan",
-      genre: "Action",
-      rating: 8.2,
-      description: "A spy thriller with breathtaking action.",
-      thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400",
-      url: "https://example.com/pathaan",
-      year: "2023",
-      duration: "2h 26m",
-    },
-    {
-      id: "2",
-      title: "3 Idiots",
-      genre: "Comedy/Drama",
-      rating: 9.1,
-      description: "An iconic story of friendship and dreams.",
-      thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400",
-      url: "https://example.com/3idiots",
-      year: "2009",
-      duration: "2h 50m",
-    },
-  ]);
+  const { movies, addMovie, updateMovie, deleteMovie } = useData();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [formData, setFormData] = useState({
-    title: "",
-    genre: "",
-    rating: 0,
-    description: "",
-    thumbnail: "",
-    url: "",
-    year: "",
-    duration: "",
+    title: "", genre: "", rating: 0, description: "",
+    thumbnail: "", videoUrl: "", year: "", duration: "",
+    language: "", director: "",
   });
 
   const genres = [
-    "Action",
-    "Comedy",
-    "Drama",
-    "Thriller",
-    "Romance",
-    "Horror",
-    "Sci-Fi",
-    "Documentary",
-    "Animation",
-    "Musical",
+    "Action", "Comedy", "Drama", "Thriller", "Romance",
+    "Horror", "Sci-Fi", "Documentary", "Animation",
+    "Nepali Thriller", "Nepali Comedy", "Nepali Drama",
+    "Epic Action", "Biography", "Musical",
   ];
 
   const filteredMovies = movies.filter(movie =>
@@ -91,58 +48,39 @@ export function AdminMovies() {
     movie.genre.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAdd = () => {
-    const newMovie: Movie = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-    setMovies([...movies, newMovie]);
-    resetForm();
-    setIsAddOpen(false);
+  const handleAdd = async () => {
+    if (!formData.title.trim()) { toast.error("Enter a title"); return; }
+    await addMovie({ ...formData, rating: Number(formData.rating) });
+    toast.success("Movie added!"); resetForm(); setIsAddOpen(false);
   };
 
   const handleEdit = (movie: Movie) => {
     setEditingMovie(movie);
     setFormData({
-      title: movie.title,
-      genre: movie.genre,
-      rating: movie.rating,
-      description: movie.description,
-      thumbnail: movie.thumbnail,
-      url: movie.url,
-      year: movie.year,
-      duration: movie.duration,
+      title: movie.title, genre: movie.genre,
+      rating: movie.rating, description: movie.description,
+      thumbnail: movie.thumbnail, videoUrl: movie.videoUrl,
+      year: movie.year, duration: movie.duration,
+      language: movie.language ?? "", director: movie.director ?? "",
     });
   };
 
-  const handleUpdate = () => {
-    if (editingMovie) {
-      setMovies(movies.map(m => 
-        m.id === editingMovie.id ? { ...m, ...formData } : m
-      ));
-      resetForm();
-      setEditingMovie(null);
-    }
+  const handleUpdate = async () => {
+    if (!editingMovie) return;
+    await updateMovie(editingMovie.id, { ...formData, rating: Number(formData.rating) });
+    toast.success("Movie updated!"); resetForm(); setEditingMovie(null);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this movie?")) {
-      setMovies(movies.filter(m => m.id !== id));
-    }
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this movie?")) return;
+    await deleteMovie(id); toast.success("Movie deleted.");
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      genre: "",
-      rating: 0,
-      description: "",
-      thumbnail: "",
-      url: "",
-      year: "",
-      duration: "",
-    });
-  };
+  const resetForm = () => setFormData({
+    title: "", genre: "", rating: 0, description: "",
+    thumbnail: "", videoUrl: "", year: "", duration: "",
+    language: "", director: "",
+  });
 
   return (
     <div className="space-y-4">
@@ -351,8 +289,8 @@ function MovieForm({
         <Label htmlFor="url">Movie URL</Label>
         <Input
           id="url"
-          value={formData.url}
-          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          value={formData.videoUrl}
+          onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
           className="mt-1.5 rounded-xl"
           placeholder="https://..."
         />

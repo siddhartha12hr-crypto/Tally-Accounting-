@@ -1,110 +1,115 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { PinLock } from "@/components/PinLock";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { 
-  BarChart3, 
-  Video, 
-  Trophy, 
-  Film, 
-  GraduationCap, 
-  Users, 
-  Settings,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  TrendingUp,
-  FileText
+import {
+  LayoutDashboard, Video, Trophy, Film,
+  GraduationCap, Settings, FileText,
+  ShieldCheck,
 } from "lucide-react";
-import { AdminVideos } from "@/components/admin/AdminVideos";
-import { AdminSports } from "@/components/admin/AdminSports";
-import { AdminMovies } from "@/components/admin/AdminMovies";
-import { AdminCourses } from "@/components/admin/AdminCourses";
+import { AdminVideos }    from "@/components/admin/AdminVideos";
+import { AdminSports }    from "@/components/admin/AdminSports";
+import { AdminMovies }    from "@/components/admin/AdminMovies";
+import { AdminCourses }   from "@/components/admin/AdminCourses";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { AdminSettings } from "@/components/admin/AdminSettings";
-import { AdminNotes } from "@/components/admin/AdminNotes";
+import { AdminSettings }  from "@/components/admin/AdminSettings";
+import { AdminNotes }     from "@/components/admin/AdminNotes";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Panel — Tally Accounting Hub Pro" }] }),
+  head: () => ({ meta: [{ title: "Admin — Tally Accounting Hub Pro" }] }),
   component: AdminPage,
 });
 
-type TabType = "dashboard" | "videos" | "sports" | "movies" | "courses" | "notes" | "settings";
+type TabId = "dashboard" | "videos" | "sports" | "movies" | "courses" | "notes" | "settings";
+
+const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "videos",    label: "Videos",    icon: Video },
+  { id: "courses",   label: "Courses",   icon: GraduationCap },
+  { id: "notes",     label: "Notes",     icon: FileText },
+  { id: "movies",    label: "Movies",    icon: Film },
+  { id: "sports",    label: "Sports",    icon: Trophy },
+  { id: "settings",  label: "Settings",  icon: Settings },
+];
 
 function AdminPage() {
-  const [activeTab, setActiveTab] = useState<TabType>("dashboard");
-
-  const tabs = [
-    { id: "dashboard" as const, label: "Dashboard", icon: BarChart3 },
-    { id: "videos"    as const, label: "Videos",    icon: Video },
-    { id: "sports"    as const, label: "Sports",    icon: Trophy },
-    { id: "movies"    as const, label: "Movies",    icon: Film },
-    { id: "courses"   as const, label: "Courses",   icon: GraduationCap },
-    { id: "notes"     as const, label: "Notes",     icon: FileText },
-    { id: "settings"  as const, label: "Settings",  icon: Settings },
-  ];
+  const [tab, setTab] = useState<TabId>("dashboard");
 
   return (
-    <PinLock title="Admin Access" pin="1111">
-      <AppShell>
-        <PageHeader 
-          eyebrow="Admin Panel" 
-          title="Content Management" 
-          subtitle="Manage videos, sports, movies, courses and more." 
-        />
-        
-        {/* Tab Navigation */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative shrink-0 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition-all ${
-                  activeTab === tab.id 
-                    ? "text-white shadow-glow" 
-                    : "text-muted-foreground glass hover:text-foreground"
-                }`}
-              >
-                {activeTab === tab.id && (
-                  <motion.span 
-                    layoutId="admin-tab" 
-                    className="absolute inset-0 rounded-full gradient-hero" 
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <Icon className="h-4 w-4 relative z-10" />
-                <span className="relative z-10">{tab.label}</span>
-              </button>
-            );
-          })}
+    <PinLock title="Admin Panel" pin="9090">
+      <div className="relative min-h-screen overflow-x-hidden pb-28">
+
+        {/* ── Fixed top bar ────────────────────────────────── */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
+          <div className="mx-auto max-w-2xl px-4 h-16 flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="h-9 w-9 rounded-xl gradient-hero flex items-center justify-center shadow-glow flex-shrink-0">
+                <ShieldCheck className="h-5 w-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base font-black leading-tight">Admin Panel</h1>
+                <p className="text-[10px] text-muted-foreground">Content Management</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Tab Content - Wrapped with Error Boundaries */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ErrorBoundary key={`error-boundary-${activeTab}`}>
-              {activeTab === "dashboard" && <AdminDashboard />}
-              {activeTab === "videos"    && <AdminVideos />}
-              {activeTab === "sports"    && <AdminSports />}
-              {activeTab === "movies"    && <AdminMovies />}
-              {activeTab === "courses"   && <AdminCourses />}
-              {activeTab === "notes"     && <AdminNotes />}
-              {activeTab === "settings"  && <AdminSettings />}
-            </ErrorBoundary>
-          </motion.div>
-        </AnimatePresence>
-      </AppShell>
+        {/* ── Tab nav (scrollable pill row) ────────────────── */}
+        <div className="fixed top-16 left-0 right-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
+          <div className="mx-auto max-w-2xl">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 py-2.5">
+              {TABS.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  className={`relative shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold transition-all duration-200 ${
+                    tab === id
+                      ? "text-white shadow-glow"
+                      : "text-muted-foreground glass hover:text-foreground"
+                  }`}
+                >
+                  {tab === id && (
+                    <motion.span
+                      layoutId="admin-tab-pill"
+                      className="absolute inset-0 rounded-full gradient-hero"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                    />
+                  )}
+                  <Icon className="h-3.5 w-3.5 relative z-10" />
+                  <span className="relative z-10">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Content ──────────────────────────────────────── */}
+        <div className="pt-32 pb-6">
+          <div className="mx-auto max-w-2xl px-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
+              >
+                <ErrorBoundary key={`eb-${tab}`}>
+                  {tab === "dashboard" && <AdminDashboard />}
+                  {tab === "videos"    && <AdminVideos />}
+                  {tab === "sports"    && <AdminSports />}
+                  {tab === "movies"    && <AdminMovies />}
+                  {tab === "courses"   && <AdminCourses />}
+                  {tab === "notes"     && <AdminNotes />}
+                  {tab === "settings"  && <AdminSettings />}
+                </ErrorBoundary>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
     </PinLock>
   );
 }

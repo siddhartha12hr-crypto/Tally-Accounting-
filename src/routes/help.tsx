@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import {
   ChevronLeft, MessageCircle, Phone, Mail,
   HelpCircle, Star, Users,
-  CheckCircle2, X, Send, ChevronDown,
+  CheckCircle2, X, Send,
 } from "lucide-react";
 
 export const Route = createFileRoute("/help")({
@@ -18,14 +18,7 @@ export const Route = createFileRoute("/help")({
   component: HelpSupport,
 });
 
-const faqs = [
-  { q: "How do I access my courses?", a: "After logging in, go to the 'My Courses' section. All your purchased courses will be listed there." },
-  { q: "What should I do if my payment fails?", a: "If a payment fails, the amount is automatically refunded within 5-7 business days. Please contact support if you don't receive it." },
-  { q: "When will I receive my certificate?", a: "Your certificate is automatically generated in the 'Certificates' section once you complete the course." },
-  { q: "My video is buffering or not playing?", a: "Please check your internet connection. Try switching to WiFi or lowering the video quality in settings." },
-  { q: "I forgot my password. What do I do?", a: "Use the 'Forgot Password' option on the login page. A reset link will be sent to your registered email." },
-  { q: "Is a course refund possible?", a: "You can request a refund within 7 days of purchase, provided your course progress is less than 80%." },
-];
+
 
 
 
@@ -126,12 +119,11 @@ function LiveChatModal({ onClose }: { onClose: () => void }) {
 // ── Main Component ────────────────────────────────────────────────
 function HelpSupport() {
   const navigate = useNavigate();
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showChat, setShowChat]   = useState(false);
 
   const handleContact = (label: string) => {
     if (label === "Live Chat")  { setShowChat(true); return; }
-    if (label === "Call Us")    { window.location.href = "tel:+911234567890"; return; }
+    if (label === "Call Us")    { window.open("https://wa.me/9823415625?text=Hello%20sir%2C%20I%20need%20some%20support%20with%20Tally", "_blank"); return; }
     if (label === "Email")      { window.location.href = "mailto:support@tallyhub.com"; return; }
   };
 
@@ -213,40 +205,7 @@ function HelpSupport() {
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="px-4">
-          <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-3">Frequently Asked Questions</h3>
-          <div className="space-y-2">
-            {faqs.map((faq, idx) => (
-              <motion.div key={idx}
-                initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 * idx }}
-                className="rounded-2xl border border-border overflow-hidden">
-                <button onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                  className="w-full flex items-center gap-3 px-4 py-4 hover:bg-accent transition-colors text-left">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <HelpCircle className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <span className="flex-1 text-sm font-semibold">{faq.q}</span>
-                  <motion.div animate={{ rotate: activeFaq === idx ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  </motion.div>
-                </button>
-                <AnimatePresence initial={false}>
-                  {activeFaq === idx && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
-                      className="overflow-hidden">
-                      <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed border-t border-border pt-3">
-                        {faq.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+
 
       </div>
     </AppShell>

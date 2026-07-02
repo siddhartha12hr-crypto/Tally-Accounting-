@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Bell, Palette, Database, Shield, Save } from "lucide-react";
+import { Lock, Bell, Database, Shield, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,12 +20,6 @@ export function AdminSettings() {
     pushNotifications: true,
     smsAlerts: false,
     weeklyReports: true,
-    
-    // Appearance Settings
-    siteName: "Tally Accounting Hub Pro",
-    tagline: "Learn Tally, Accounting & Business Skills",
-    primaryColor: "#FF6B35",
-    accentColor: "#004E89",
     
     // System Settings
     maxUploadSize: "100",
@@ -108,40 +102,6 @@ export function AdminSettings() {
           description: "Automated weekly analytics reports",
           value: settings.weeklyReports,
           onChange: (value: boolean) => setSettings({ ...settings, weeklyReports: value }),
-        },
-      ],
-    },
-    {
-      title: "Appearance",
-      icon: Palette,
-      items: [
-        {
-          type: "input",
-          label: "Site Name",
-          description: "Display name for the platform",
-          value: settings.siteName,
-          onChange: (value: string) => setSettings({ ...settings, siteName: value }),
-        },
-        {
-          type: "input",
-          label: "Tagline",
-          description: "Site tagline or description",
-          value: settings.tagline,
-          onChange: (value: string) => setSettings({ ...settings, tagline: value }),
-        },
-        {
-          type: "color",
-          label: "Primary Color",
-          description: "Main brand color",
-          value: settings.primaryColor,
-          onChange: (value: string) => setSettings({ ...settings, primaryColor: value }),
-        },
-        {
-          type: "color",
-          label: "Accent Color",
-          description: "Secondary brand color",
-          value: settings.accentColor,
-          onChange: (value: string) => setSettings({ ...settings, accentColor: value }),
         },
       ],
     },
