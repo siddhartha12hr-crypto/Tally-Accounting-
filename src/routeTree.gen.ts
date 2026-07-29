@@ -27,6 +27,7 @@ import { Route as TakeQuizQuizIdRouteImport } from './routes/take-quiz.$quizId'
 import { Route as PaymentContentIdRouteImport } from './routes/payment.$contentId'
 import { Route as NotesNoteIdRouteImport } from './routes/notes.$noteId'
 import { Route as MovieMovieIdRouteImport } from './routes/movie.$movieId'
+import { Route as CoursesCourseIdNotesRouteImport } from './routes/courses.$courseId.notes'
 
 const SportsRoute = SportsRouteImport.update({
   id: '/sports',
@@ -118,12 +119,17 @@ const MovieMovieIdRoute = MovieMovieIdRouteImport.update({
   path: '/movie/$movieId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoursesCourseIdNotesRoute = CoursesCourseIdNotesRouteImport.update({
+  id: '/$courseId/notes',
+  path: '/$courseId/notes',
+  getParentRoute: () => CoursesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/courses': typeof CoursesRoute
+  '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
@@ -138,12 +144,13 @@ export interface FileRoutesByFullPath {
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
+  '/courses/$courseId/notes': typeof CoursesCourseIdNotesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/courses': typeof CoursesRoute
+  '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
@@ -158,13 +165,14 @@ export interface FileRoutesByTo {
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
+  '/courses/$courseId/notes': typeof CoursesCourseIdNotesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/courses': typeof CoursesRoute
+  '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
   '/learn': typeof LearnRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/payment/$contentId': typeof PaymentContentIdRoute
   '/take-quiz/$quizId': typeof TakeQuizQuizIdRoute
   '/watch/$videoId': typeof WatchVideoIdRoute
+  '/courses/$courseId/notes': typeof CoursesCourseIdNotesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/payment/$contentId'
     | '/take-quiz/$quizId'
     | '/watch/$videoId'
+    | '/courses/$courseId/notes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/payment/$contentId'
     | '/take-quiz/$quizId'
     | '/watch/$videoId'
+    | '/courses/$courseId/notes'
   id:
     | '__root__'
     | '/'
@@ -241,13 +252,14 @@ export interface FileRouteTypes {
     | '/payment/$contentId'
     | '/take-quiz/$quizId'
     | '/watch/$videoId'
+    | '/courses/$courseId/notes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
-  CoursesRoute: typeof CoursesRoute
+  CoursesRoute: typeof CoursesRouteWithChildren
   EntertainmentRoute: typeof EntertainmentRoute
   HelpRoute: typeof HelpRoute
   LearnRoute: typeof LearnRoute
@@ -391,8 +403,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MovieMovieIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/courses/$courseId/notes': {
+      id: '/courses/$courseId/notes'
+      path: '/$courseId/notes'
+      fullPath: '/courses/$courseId/notes'
+      preLoaderRoute: typeof CoursesCourseIdNotesRouteImport
+      parentRoute: typeof CoursesRoute
+    }
   }
 }
+
+interface CoursesRouteChildren {
+  CoursesCourseIdNotesRoute: typeof CoursesCourseIdNotesRoute
+}
+
+const CoursesRouteChildren: CoursesRouteChildren = {
+  CoursesCourseIdNotesRoute: CoursesCourseIdNotesRoute,
+}
+
+const CoursesRouteWithChildren =
+  CoursesRoute._addFileChildren(CoursesRouteChildren)
 
 interface NotesRouteChildren {
   NotesNoteIdRoute: typeof NotesNoteIdRoute
@@ -408,7 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
-  CoursesRoute: CoursesRoute,
+  CoursesRoute: CoursesRouteWithChildren,
   EntertainmentRoute: EntertainmentRoute,
   HelpRoute: HelpRoute,
   LearnRoute: LearnRoute,

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:vercel": "vite build --config vite.capacitor.config.ts",
     "build:dev": "vite build --mode development",
     "build:apk": "vite build --config vite.capacitor.config.ts && npx cap sync android",
     "preview": "vite preview",

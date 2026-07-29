@@ -6,7 +6,7 @@ import {
 import { useData } from "@/contexts/DataContext";
 
 export function AdminDashboard() {
-  const { videos, courses, movies, sports, notes } = useData();
+  const { videos, courses, movies, sports, notes, isLoading } = useData();
 
   const stats = [
     {

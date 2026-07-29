@@ -34,6 +34,7 @@ const EMPTY_FORM = {
   title:        "",
   description:  "",
   category:     "",
+  courseId:     "",
   thumbnailUrl: "",
   pdfUrl:       "",
   tags:         "",
@@ -42,6 +43,7 @@ const EMPTY_FORM = {
   pageCount:    0,
   author:       "",
   status:       "draft" as Note["status"],
+  showInCourses: false,
 };
 
 /* ─── PDF Upload Zone ─── */
@@ -205,7 +207,7 @@ function PdfUploadZone({
 
 /* ─── Main component ─── */
 export function AdminNotes() {
-  const { notes, addNote, updateNote, deleteNote } = useData();
+  const { notes, courses, addNote, updateNote, deleteNote } = useData();
 
   const [search, setSearch]           = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "published" | "draft">("all");
@@ -237,6 +239,7 @@ export function AdminNotes() {
       title:        note.title,
       description:  note.description,
       category:     note.category,
+      courseId:     note.tags.find(tag => tag.startsWith("course:"))?.slice(7) || "",
       thumbnailUrl: note.thumbnailUrl,
       pdfUrl:       note.pdfUrl,
       tags:         note.tags.join(", "),
@@ -245,6 +248,7 @@ export function AdminNotes() {
       pageCount:    note.pageCount,
       author:       note.author,
       status:       note.status,
+      showInCourses: note.showInCourses ?? false,
     });
     setPdfFileName(note.pdfUrl.startsWith("data:") ? "Uploaded file" : "");
     setIsFormOpen(true);
@@ -298,7 +302,13 @@ export function AdminNotes() {
   const handleSave = () => {
     if (!validate()) return;
     const now  = new Date().toISOString();
-    const tags = form.tags.split(",").map(t => t.trim()).filter(Boolean);
+    const tags = form.tags
+      .split(",")
+      .map(t => t.trim())
+      .filter(Boolean)
+      .filter(tag => !tag.startsWith("course:"));
+
+    if (form.courseId) tags.push(`course:${form.courseId}`);
 
     if (editingNote) {
       updateNote(editingNote.id, { ...form, tags, updatedAt: now });
@@ -319,6 +329,7 @@ export function AdminNotes() {
         createdAt:    now,
         updatedAt:    now,
         status:       form.status,
+        showInCourses: form.showInCourses ?? false,
       };
       addNote(newNote);
       toast.success("Note added!");
@@ -532,6 +543,19 @@ export function AdminNotes() {
               </div>
             </div>
 
+            <div>
+              <Label>Attach to Course</Label>
+              <Select value={form.courseId || "unassigned"}
+                onValueChange={v => setForm({ ...form, courseId: v === "unassigned" ? "" : v })}>
+                <SelectTrigger className="mt-1.5 rounded-xl"><SelectValue placeholder="All courses in this category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">All courses in this category</SelectItem>
+                  {courses.map(course => <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-[10px] text-muted-foreground">Choose a course to show this note only on that course's View Notes page.</p>
+            </div>
+
             {/* Thumbnail URL */}
             <div>
               <Label htmlFor="n-thumb">Thumbnail URL</Label>
@@ -582,6 +606,21 @@ export function AdminNotes() {
                 checked={form.status === "published"}
                 onCheckedChange={c => setForm({ ...form, status: c ? "published" : "draft" })}
                 className="data-[state=checked]:bg-green-500"
+              />
+            </div>
+
+            {/* Show in Courses toggle */}
+            <div className="flex items-center justify-between rounded-xl glass p-3 border border-border">
+              <div>
+                <Label className="font-bold">Show in Courses Page</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Display this note in the View Notes section on the Courses page.
+                </p>
+              </div>
+              <Switch
+                checked={form.showInCourses ?? false}
+                onCheckedChange={c => setForm({ ...form, showInCourses: c })}
+                className="data-[state=checked]:bg-blue-500"
               />
             </div>
 

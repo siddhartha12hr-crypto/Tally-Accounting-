@@ -84,6 +84,7 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   status: "published" | "draft";
+  showInCourses: boolean;
 }
 
 /* ─── Stats type (for dashboard) ────────────────────────── */
@@ -198,6 +199,7 @@ function dbNote(r: any): Note {
     pageCount: r.page_count ?? 0, author: r.author ?? "",
     createdAt: r.created_at, updatedAt: r.updated_at,
     status: r.status ?? "draft",
+    showInCourses: r.show_in_courses ?? false,
   };
 }
 
@@ -445,6 +447,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         pdf_url: data.pdfUrl, tags: data.tags,
         difficulty: data.difficulty, reading_time: data.readingTime,
         page_count: data.pageCount, author: data.author, status: data.status,
+        show_in_courses: data.showInCourses ?? false,
       }).select().single();
       if (!error && row) { setNotes(p => [dbNote(row), ...p]); return; }
       console.error("Supabase addNote:", error);

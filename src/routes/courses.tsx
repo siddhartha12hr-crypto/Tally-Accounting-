@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Star, Clock, Users, BookOpen, Lock } from "lucide-react";
+import { Star, Clock, Users, BookOpen, Lock, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
@@ -18,8 +18,31 @@ export const Route = createFileRoute("/courses")({
 
 const palettes = ["gradient-saffron", "gradient-royal", "gradient-hero", "gradient-gold"];
 
+function openPdf(pdfUrl: string) {
+  if (!pdfUrl) return;
+  if (pdfUrl.startsWith("data:")) {
+    try {
+      const byteString = atob(pdfUrl.split(",")[1]);
+      const mimeMatch  = pdfUrl.match(/data:([^;]+)/);
+      const mime       = mimeMatch ? mimeMatch[1] : "application/pdf";
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: mime });
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch { window.open(pdfUrl, "_blank", "noopener,noreferrer"); }
+  } else {
+    window.open(pdfUrl, "_blank", "noopener,noreferrer");
+  }
+}
+
+const NOTE_ACCENT_COLORS = [
+  "#1a3a8f","#e8720c","#7c3aed","#059669",
+  "#db2777","#8b0000","#0e6b8f","#876a00",
+];
+
 function Courses() {
-  const { courses } = useData();
+  const { courses, notes } = useData();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
@@ -124,6 +147,83 @@ function Courses() {
           <p className="text-xs text-muted-foreground mt-1">New courses coming soon!</p>
         </div>
       )}
+
+      {/* ── View Notes Section ────────────────────────── */}
+      {(() => {
+        const courseNotes = notes.filter(n => n.showInCourses && n.status === "published");
+        if (courseNotes.length === 0) return null;
+        return (
+          <div className="mt-8">
+            {/* Section header */}
+            <div
+              className="mx-[-1rem] px-4 py-4 mb-5 flex items-center justify-between"
+              style={{ background: "linear-gradient(135deg,#1a3a8f,#0e6b8f)" }}
+            >
+              <h2 className="text-white text-lg font-black tracking-wide flex items-center gap-2">
+                <FileText className="h-5 w-5" /> View Notes
+              </h2>
+              <span className="text-white/70 text-xs font-semibold">{courseNotes.length} available</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {courseNotes.map((note, idx) => {
+                const accent = NOTE_ACCENT_COLORS[idx % NOTE_ACCENT_COLORS.length];
+                return (
+                  <motion.div
+                    key={note.id}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.13)" }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      if (note.pdfUrl) openPdf(note.pdfUrl);
+                      else toast.info("No PDF attached to this note yet.");
+                    }}
+                    className="flex flex-col rounded-2xl overflow-hidden cursor-pointer"
+                    style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
+                      {note.thumbnailUrl ? (
+                        <img src={note.thumbnailUrl} alt={note.title}
+                          className="w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center"
+                          style={{ background: `${accent}18` }}>
+                          <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
+                        </div>
+                      )}
+                      {note.pdfUrl && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg"
+                          style={{ background: "rgba(22,163,74,0.85)" }}>
+                          <FileText className="h-3 w-3 text-white" />
+                          <span className="text-[9px] font-bold text-white tracking-wide">PDF</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Info */}
+                    <div className="px-3 py-3">
+                      <p className="text-sm font-black leading-tight line-clamp-2" style={{ color: accent }}>
+                        {note.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                        {note.description || note.category}
+                      </p>
+                      {note.readingTime && note.readingTime !== "—" && (
+                        <p className="text-[10px] text-muted-foreground mt-1 font-semibold">
+                          📖 {note.readingTime} · {note.difficulty}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </AppShell>
   );
 }

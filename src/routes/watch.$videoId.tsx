@@ -187,7 +187,7 @@ function WatchPage() {
       <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - Scrollable */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             {/* Title and Stats */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -225,8 +225,22 @@ function WatchPage() {
                   </>
                 )}
               </div>
+              {course && (
+                <Button
+                  size="sm"
+                  className="mt-4 rounded-full gradient-hero text-white font-bold shadow-glow"
+                  onClick={() => navigate({
+                    to: "/courses/$courseId/notes",
+                    params: { courseId: course.id },
+                  })}
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  View Notes
+                </Button>
+              )}
             </motion.div>
 
+            {false && <>
             {/* Action Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -286,6 +300,15 @@ function WatchPage() {
                   </Button>
                 )}
 
+                <Button
+                  size="sm"
+                  className="rounded-full gradient-hero text-white font-bold shadow-glow"
+                  onClick={() => navigate({ to: "/notes" })}
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  View Notes
+                </Button>
+
                 {/* Price Badge */}
                 <div className="ml-auto shrink-0">
                   <span className={`inline-block px-4 py-2 rounded-full text-xs font-bold ${
@@ -301,6 +324,9 @@ function WatchPage() {
               </div>
             </motion.div>
 
+            </>}
+
+            {false && <>
             {/* Instructor/Creator Info */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -383,6 +409,8 @@ function WatchPage() {
               </AnimatePresence>
             </motion.div>
 
+            </>}
+
             {/* Purchase Status */}
             {isPurchased && (
               <motion.div
@@ -406,6 +434,7 @@ function WatchPage() {
             )}
           </div>
 
+          {false && <>
           {/* Sidebar - Related Content (Scrollable) */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-6 space-y-4">
@@ -465,6 +494,7 @@ function WatchPage() {
               </div>
             </div>
           </div>
+          </>}
         </div>
       </div>
     </div>
