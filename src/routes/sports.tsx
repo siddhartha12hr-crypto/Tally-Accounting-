@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { PinLock } from "@/components/PinLock";
-import { cricketMatches, footballMatches } from "@/lib/mockData";
+import { useData } from "@/contexts/DataContext";
 import { Trophy, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/sports")({
@@ -24,6 +24,17 @@ function Sports() {
 
 function Tabs() {
   const [tab, setTab] = useState<"cricket" | "football">("cricket");
+  const { sports } = useData();
+
+  const cricketMatches  = sports.filter(s => s.sport === "cricket");
+  const footballMatches = sports.filter(s => s.sport === "football");
+
+  const EmptyState = () => (
+    <div className="text-center py-14 rounded-2xl glass">
+      <p className="font-bold text-muted-foreground">No matches yet</p>
+      <p className="text-xs text-muted-foreground mt-1">Matches added by admin will appear here.</p>
+    </div>
+  );
   return (
     <>
       <div className="mb-5 inline-flex rounded-full glass p-1 shadow-card">
@@ -35,13 +46,14 @@ function Tabs() {
         ))}
       </div>
       {tab === "cricket" ? (
+        cricketMatches.length === 0 ? <EmptyState /> : (
         <div className="grid gap-3">
           {cricketMatches.map((m, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="rounded-2xl glass p-4 shadow-card">
+            <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="rounded-2xl glass p-4 shadow-card">
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
                 <span className="inline-flex items-center gap-1 text-primary"><Trophy className="h-3 w-3" /> Cricket</span>
-                <span className={`inline-flex items-center gap-1 ${m.status === "LIVE" ? "text-destructive" : "text-muted-foreground"}`}>
-                  {m.status === "LIVE" && <Radio className="h-3 w-3 animate-pulse" />} {m.status}
+                <span className={`inline-flex items-center gap-1 ${m.isLive ? "text-destructive" : "text-muted-foreground"}`}>
+                  {m.isLive && <Radio className="h-3 w-3 animate-pulse" />} {m.status}
                 </span>
               </div>
               <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -55,17 +67,19 @@ function Tabs() {
                   <p className="text-lg font-black text-gradient">{m.scoreB}</p>
                 </div>
               </div>
-              {m.overs && <p className="mt-2 text-center text-[11px] text-muted-foreground">{m.overs}</p>}
+              {m.extraInfo && <p className="mt-2 text-center text-[11px] text-muted-foreground">{m.extraInfo}</p>}
             </motion.div>
           ))}
         </div>
+        )
       ) : (
+        footballMatches.length === 0 ? <EmptyState /> : (
         <div className="grid gap-3">
           {footballMatches.map((m, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="rounded-2xl glass p-4 shadow-card">
+            <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="rounded-2xl glass p-4 shadow-card">
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
                 <span className="text-primary">⚽ Football</span>
-                <span className={`${m.status === "LIVE" ? "text-destructive" : "text-muted-foreground"}`}>{m.status} {m.time}</span>
+                <span className={`${m.isLive ? "text-destructive" : "text-muted-foreground"}`}>{m.status} {m.extraInfo}</span>
               </div>
               <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <p className="text-sm font-black">{m.teamA}</p>
@@ -75,6 +89,7 @@ function Tabs() {
             </motion.div>
           ))}
         </div>
+        )
       )}
     </>
   );
