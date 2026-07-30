@@ -181,6 +181,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user || !token) return;
     const updated: AuthUser = { ...user, ...updates, name: updates.fullName ?? user.fullName };
     persist(updated, token);
+    // Also update in users DB
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) { users[idx] = { ...users[idx], ...updates }; saveUsersDB(users); }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    if (!user) return { success: false, message: 'Not logged in' };
+    const users = getUsersDB();
+    const dbUser = users.find(u => u.id === user.id);
+    if (!dbUser) return { success: false, message: 'User not found' };
+    if (dbUser.password !== currentPassword) return { success: false, message: 'Current password is incorrect' };
+    if (newPassword.length < 6) return { success: false, message: 'New password must be at least 6 characters' };
+    const idx = users.findIndex(u => u.id === user.id);
+    users[idx].password = newPassword;
+    saveUsersDB(users);
+    return { success: true, message: 'Password changed successfully!' };
   };
 
   const hasPurchased = (contentId: string, type: 'course' | 'video') => {
@@ -198,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, signup, login, logout, updateProfile, hasPurchased, purchaseContent }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, signup, login, logout, updateProfile, changePassword, hasPurchased, purchaseContent }}>
       {children}
     </AuthContext.Provider>
   );

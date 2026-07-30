@@ -16,6 +16,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as ItHeroRouteImport } from './routes/it-hero'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as CoursesRouteImport } from './routes/courses'
@@ -62,6 +63,11 @@ const LoginRoute = LoginRouteImport.update({
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ItHeroRoute = ItHeroRouteImport.update({
+  id: '/it-hero',
+  path: '/it-hero',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
+  '/it-hero': typeof ItHeroRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
+  '/it-hero': typeof ItHeroRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRouteWithChildren
   '/entertainment': typeof EntertainmentRoute
   '/help': typeof HelpRoute
+  '/it-hero': typeof ItHeroRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/notes': typeof NotesRouteWithChildren
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/help'
+    | '/it-hero'
     | '/learn'
     | '/login'
     | '/notes'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/help'
+    | '/it-hero'
     | '/learn'
     | '/login'
     | '/notes'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/entertainment'
     | '/help'
+    | '/it-hero'
     | '/learn'
     | '/login'
     | '/notes'
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRouteWithChildren
   EntertainmentRoute: typeof EntertainmentRoute
   HelpRoute: typeof HelpRoute
+  ItHeroRoute: typeof ItHeroRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   NotesRoute: typeof NotesRouteWithChildren
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/it-hero': {
+      id: '/it-hero'
+      path: '/it-hero'
+      fullPath: '/it-hero'
+      preLoaderRoute: typeof ItHeroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRouteWithChildren,
   EntertainmentRoute: EntertainmentRoute,
   HelpRoute: HelpRoute,
+  ItHeroRoute: ItHeroRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   NotesRoute: NotesRouteWithChildren,

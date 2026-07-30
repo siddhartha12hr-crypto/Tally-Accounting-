@@ -27,6 +27,7 @@ export interface AuthContextType {
   login:           (identifier: string, password: string) => Promise<{ success: boolean; message: string }>;
   logout:          () => void;
   updateProfile:   (updates: Partial<Pick<AuthUser, 'fullName' | 'avatar'>>) => void;
+  changePassword:  (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   hasPurchased:    (contentId: string, type: 'course' | 'video') => boolean;
   purchaseContent: (contentId: string, type: 'course' | 'video') => void;
 }
