@@ -43,6 +43,24 @@ function WatchPage() {
   const [disliked, setDisliked] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Save progress when course is opened
+  useEffect(() => {
+    if (!content) return;
+    const isFree = content.price === "Free" || content.price === "₹0";
+    const isPurchased = video ? hasPurchased(videoId, 'video') : hasPurchased(videoId, 'course');
+    if ((isFree || isPurchased) && typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("tally_course_progress");
+        const data = raw ? JSON.parse(raw) : {};
+        // Mark as started (5%) if not already further along
+        if (!data[videoId] || data[videoId] < 5) {
+          data[videoId] = 5;
+          localStorage.setItem("tally_course_progress", JSON.stringify(data));
+        }
+      } catch {}
+    }
+  }, [content, videoId, hasPurchased, video]);
+
   // Find the video or course
   const video = videos.find(v => v.id === videoId);
   const course = courses.find(c => c.id === videoId);

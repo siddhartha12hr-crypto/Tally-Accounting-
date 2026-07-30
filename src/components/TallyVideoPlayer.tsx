@@ -45,6 +45,29 @@ export function TallyVideoPlayer() {
   const videoRef   = useRef<HTMLVideoElement>(null);
   const hideTimer  = useRef<ReturnType<typeof setTimeout>>();
 
+  const COURSE_ID = "tally-erp-free";
+
+  /* Save progress to localStorage whenever completed set changes */
+  useEffect(() => {
+    if (typeof window === "undefined" || completed.size === 0) return;
+    try {
+      const pct = Math.round((completed.size / TALLY_VIDEOS.length) * 100);
+      const raw = localStorage.getItem("tally_course_progress");
+      const data = raw ? JSON.parse(raw) : {};
+      data[COURSE_ID] = pct;
+      localStorage.setItem("tally_course_progress", JSON.stringify(data));
+    } catch {}
+  }, [completed]);
+
+  /* Restore completed lessons from localStorage on mount */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("tally_erp_completed_lessons");
+      if (raw) setCompleted(new Set(JSON.parse(raw)));
+    } catch {}
+  }, []);
+
   /* Load video whenever current changes */
   useEffect(() => {
     const v = videoRef.current;
@@ -145,7 +168,16 @@ export function TallyVideoPlayer() {
           }}
           onEnded={() => {
             setPlaying(false);
-            setCompleted(prev => new Set([...prev, current.id]));
+            setCompleted(prev => {
+              const next = new Set([...prev, current.id]);
+              // Persist completed lessons
+              if (typeof window !== "undefined") {
+                try {
+                  localStorage.setItem("tally_erp_completed_lessons", JSON.stringify([...next]));
+                } catch {}
+              }
+              return next;
+            });
             playNext();
           }}
           onPlay={() => setPlaying(true)}

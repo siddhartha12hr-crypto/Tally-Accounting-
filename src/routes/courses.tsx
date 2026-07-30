@@ -43,22 +43,36 @@ const NOTE_ACCENT_COLORS = [
 
 function Courses() {
   const { courses, notes } = useData();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasPurchased, purchaseContent } = useAuth();
   const navigate = useNavigate();
   
   const handleEnroll = (courseId: string, price: string) => {
     const isFree = price === "Free" || price === "₹0";
     
-    if (!isFree && !isAuthenticated) {
-      toast.info("Please login to access this premium course");
-      navigate({ 
-        to: "/login",
-        search: { redirect: `/watch/${courseId}` }
-      });
+    // Must be logged in
+    if (!isAuthenticated) {
+      toast.info("Please login to enroll in this course");
+      navigate({ to: "/login", search: { redirect: `/courses` } });
       return;
     }
-    
-    navigate({ to: `/watch/${courseId}` });
+
+    // Already enrolled
+    if (hasPurchased(courseId, 'course')) {
+      toast.info("You're already enrolled — opening course");
+      navigate({ to: `/watch/${courseId}` });
+      return;
+    }
+
+    if (isFree) {
+      // Enroll immediately — save to user account
+      purchaseContent(courseId, 'course');
+      toast.success("Enrolled successfully! Opening course…");
+      navigate({ to: `/watch/${courseId}` });
+      return;
+    }
+
+    // Premium — go to payment
+    navigate({ to: `/payment/${courseId}` });
   };
   
   return (
@@ -128,10 +142,12 @@ function Courses() {
                 onClick={() => handleEnroll(course.id, course.price)}
                 className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow"
               >
-                {course.price === "Free" || course.price === "₹0" 
-                  ? "Start Learning Free" 
-                  : isAuthenticated 
-                  ? "Enroll Now" 
+                {hasPurchased(course.id, 'course')
+                  ? "Continue Learning →"
+                  : course.price === "Free" || course.price === "₹0"
+                  ? "Start Learning Free"
+                  : isAuthenticated
+                  ? "Enroll Now"
                   : "Login to Enroll"}
               </button>
             </div>

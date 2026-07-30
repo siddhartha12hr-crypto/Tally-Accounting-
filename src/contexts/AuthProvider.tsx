@@ -223,6 +223,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else { if (!updated.purchasedVideos.includes(contentId)) updated.purchasedVideos.push(contentId); }
     setUser(updated);
     lsSet(USER_KEY, JSON.stringify(updated));
+    // Also persist to usersDB so it survives logout/login
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) {
+      users[idx].purchasedCourses = updated.purchasedCourses;
+      users[idx].purchasedVideos  = updated.purchasedVideos;
+      saveUsersDB(users);
+    }
   };
 
   return (
