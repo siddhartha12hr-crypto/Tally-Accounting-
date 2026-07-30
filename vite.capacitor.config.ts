@@ -17,8 +17,10 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      input: path.resolve(__dirname, "capacitor.index.html"),
+    },
   },
-  // SPA fallback — all routes served by index.html
   define: {
     "import.meta.env.VITE_CAPACITOR": JSON.stringify("true"),
   },
