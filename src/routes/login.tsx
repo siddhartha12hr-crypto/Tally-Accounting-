@@ -20,6 +20,7 @@ export const Route = createFileRoute("/login")({
 const SAVED_KEY = "tally_saved_identifiers";
 
 function getSaved(): string[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(SAVED_KEY);
     return raw ? JSON.parse(raw) : [];

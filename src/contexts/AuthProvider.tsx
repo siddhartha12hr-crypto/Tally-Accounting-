@@ -13,11 +13,25 @@ const USER_KEY  = 'tally_auth_user';
 const ID_KEY    = 'tally_saved_identifiers';
 const USERS_DB  = 'tally_users_db'; // Simulated user database
 
+// Safe localStorage helpers (SSR-safe)
+function lsGet(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function lsSet(key: string, value: string): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(key, value); } catch {}
+}
+function lsRemove(key: string): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.removeItem(key); } catch {}
+}
+
 function saveIdentifier(id: string) {
   try {
-    const raw  = localStorage.getItem(ID_KEY);
+    const raw  = lsGet(ID_KEY);
     const list: string[] = raw ? JSON.parse(raw) : [];
-    if (!list.includes(id)) { list.unshift(id); localStorage.setItem(ID_KEY, JSON.stringify(list.slice(0, 5))); }
+    if (!list.includes(id)) { list.unshift(id); lsSet(ID_KEY, JSON.stringify(list.slice(0, 5))); }
   } catch {}
 }
 
@@ -38,18 +52,13 @@ function normalise(raw: any): AuthUser {
 // Get all registered users from localStorage
 function getUsersDB(): any[] {
   try {
-    const raw = localStorage.getItem(USERS_DB);
+    const raw = lsGet(USERS_DB);
     return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-// Save users database
 function saveUsersDB(users: any[]) {
-  try {
-    localStorage.setItem(USERS_DB, JSON.stringify(users));
-  } catch {}
+  try { lsSet(USERS_DB, JSON.stringify(users)); } catch {}
 }
 
 // Find user by identifier (username, email, or phone)
@@ -73,13 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window === "undefined") { setIsLoading(false); return; }
     try {
-      const t = localStorage.getItem(TOKEN_KEY);
-      const u = localStorage.getItem(USER_KEY);
+      const t = lsGet(TOKEN_KEY);
+      const u = lsGet(USER_KEY);
       if (t && u) { setToken(t); setUser(JSON.parse(u)); }
     } catch {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
+      lsRemove(TOKEN_KEY);
+      lsRemove(USER_KEY);
     } finally {
       setIsLoading(false);
     }
@@ -87,14 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function persist(u: AuthUser, t: string) {
     setUser(u); setToken(t);
-    localStorage.setItem(TOKEN_KEY, t);
-    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    lsSet(TOKEN_KEY, t);
+    lsSet(USER_KEY, JSON.stringify(u));
   }
 
   function clear() {
     setUser(null); setToken(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    lsRemove(TOKEN_KEY);
+    lsRemove(USER_KEY);
   }
 
   const signup = async (data: SignupData): Promise<{ success: boolean; message: string }> => {
@@ -212,7 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (type === 'course') { if (!updated.purchasedCourses.includes(contentId)) updated.purchasedCourses.push(contentId); }
     else { if (!updated.purchasedVideos.includes(contentId)) updated.purchasedVideos.push(contentId); }
     setUser(updated);
-    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    lsSet(USER_KEY, JSON.stringify(updated));
   };
 
   return (
