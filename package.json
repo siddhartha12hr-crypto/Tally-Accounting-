@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:vercel-ssr": "cross-env NITRO_PRESET=vercel npm run build",
     "build:vercel": "vite build --config vite.capacitor.config.ts",
     "build:dev": "vite build --mode development",
     "build:apk": "vite build --config vite.capacitor.config.ts && npx cap sync android",
@@ -80,6 +81,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "cross-env": "10.1.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
