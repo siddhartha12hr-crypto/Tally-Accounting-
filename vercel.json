@@ -1,6 +1,5 @@
 {
   "buildCommand": "npm run build:vercel-ssr",
-  "outputDirectory": ".vercel/output",
   "framework": null,
   "installCommand": "npm install"
 }
