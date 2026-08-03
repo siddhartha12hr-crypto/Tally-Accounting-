@@ -213,7 +213,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasPurchased = (contentId: string, type: 'course' | 'video') => {
     if (!user) return false;
-    return type === 'course' ? user.purchasedCourses.includes(contentId) : user.purchasedVideos.includes(contentId);
+    // Check both in-memory state AND localStorage directly (handles race after purchaseContent)
+    const inMemory = type === 'course' ? user.purchasedCourses.includes(contentId) : user.purchasedVideos.includes(contentId);
+    if (inMemory) return true;
+    // Fallback: check localStorage directly in case state hasn't updated yet
+    try {
+      const raw = lsGet(USER_KEY);
+      if (raw) {
+        const stored = JSON.parse(raw);
+        return type === 'course'
+          ? (stored.purchasedCourses || []).includes(contentId)
+          : (stored.purchasedVideos || []).includes(contentId);
+      }
+    } catch {}
+    return false;
   };
 
   const purchaseContent = (contentId: string, type: 'course' | 'video') => {

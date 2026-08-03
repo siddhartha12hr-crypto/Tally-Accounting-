@@ -29,7 +29,7 @@ export function BottomNav() {
       >
         {items.map(({ to, label, icon: Icon, ...rest }) => {
           const isSpecial = (rest as any).special === true;
-          const active    = to === "/" ? pathname === "/" : pathname.startsWith(to);
+          const active = to === "/" ? pathname === "/" : pathname === to;
 
           if (isSpecial) {
             return (

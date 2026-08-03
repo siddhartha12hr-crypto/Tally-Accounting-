@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { DataProvider } from "@/contexts/DataContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 function NotFoundComponent() {
   return (
@@ -22,10 +25,8 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+          <Link to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             Go home
           </Link>
         </div>
@@ -44,26 +45,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+            onClick={() => { router.invalidate(); reset(); }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             Try again
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
+          <a href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent">
             Go home
           </a>
         </div>
@@ -101,24 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
+      <head><HeadContent /></head>
+      <body>{children}<Scripts /></body>
     </html>
   );
 }
 
-import { DataProvider } from "@/contexts/DataContext";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-
-/* ── Auth Guard ──────────────────────────────────────────
-   Only /courses requires login.
-   All other routes are freely accessible.
-──────────────────────────────────────────────────────── */
 const PROTECTED_ROUTES = ["/courses"];
 
 function AuthGuard({ children }: { children: ReactNode }) {
@@ -129,13 +110,11 @@ function AuthGuard({ children }: { children: ReactNode }) {
     if (isLoading) return;
     const current = router.state.location.pathname;
     const needsAuth = PROTECTED_ROUTES.some(r => current.startsWith(r));
-
     if (needsAuth && !isAuthenticated) {
       router.navigate({ to: "/login", replace: true });
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // Only show spinner when loading AND trying to access a protected route
   if (isLoading) {
     const current = router.state.location.pathname;
     const needsAuth = PROTECTED_ROUTES.some(r => current.startsWith(r));
@@ -158,10 +137,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DataProvider>
-          <AuthGuard>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </AuthGuard>
+          <NotificationProvider>
+            <AuthGuard>
+              <Outlet />
+            </AuthGuard>
+          </NotificationProvider>
         </DataProvider>
       </AuthProvider>
     </QueryClientProvider>

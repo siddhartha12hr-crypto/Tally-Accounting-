@@ -6,8 +6,10 @@ import { HeroSlider } from "@/components/HeroSlider";
 import { quickActions } from "@/lib/mockData";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { NotificationDropdown } from "@/components/NotificationDropdown";
 import logoImg from "../../imgfile/logo.png";
-import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Clock, Bell, Search, MoreVertical, ArrowRight } from "lucide-react";
+import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Bell, Search, MoreVertical } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle };
 
@@ -24,26 +26,12 @@ export const Route = createFileRoute("/")({
 function Home() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMenu, setShowMenu]     = useState(false);
-  const [showChat, setShowChat]     = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  const [notifications, setNotifications] = useState([
-    { id: "1", title: "New Course Available", body: "Advanced GST Filing is now live",  time: "2 hours ago", read: false, gradient: "gradient-saffron" },
-    { id: "2", title: "Certification Ready",  body: "You can now take the final exam",   time: "1 day ago",   read: false, gradient: "gradient-royal" },
-    { id: "3", title: "Live Session Tomorrow",body: "Tally Prime Expert Q&A at 6 PM",    time: "2 days ago",  read: false, gradient: "gradient-gold"  },
-  ]);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  useEffect(() => {
-    if (showNotifications && unreadCount > 0) {
-      const t = setTimeout(() => setNotifications(prev => prev.map(n => ({ ...n, read: true }))), 1500);
-      return () => clearTimeout(t);
-    }
-  }, [showNotifications]);
-
+  // Close dropdowns on outside click
   useEffect(() => {
     const close = () => { setShowNotifications(false); setShowMenu(false); };
     if (showNotifications || showMenu) {
@@ -94,40 +82,8 @@ function Home() {
         </div>
       </div>
 
-      {/* Notification Dropdown */}
-      <AnimatePresence>
-        {showNotifications && (
-          <motion.div initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.97 }} transition={{ type: "spring", damping: 22, stiffness: 300 }}
-            onClick={e => e.stopPropagation()}
-            className="fixed top-20 right-4 w-80 glass rounded-2xl shadow-elegant p-4 z-50">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold">Notifications</h3>
-              <span className="text-xs text-muted-foreground">{unreadCount > 0 ? `${unreadCount} unread` : "All read"}</span>
-            </div>
-            <div className="space-y-2">
-              {notifications.map(n => (
-                <motion.div key={n.id} animate={{ opacity: n.read ? 0.6 : 1 }} transition={{ duration: 0.8 }}
-                  className="flex gap-3 p-3 rounded-xl hover:bg-accent transition-colors cursor-pointer">
-                  <div className={`h-10 w-10 rounded-full ${n.gradient} flex-shrink-0`} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold truncate">{n.title}</p>
-                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">{n.body}</p>
-                    <p className="text-xs text-primary mt-0.5">{n.time}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <button onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-              className="mt-3 w-full text-xs font-semibold text-primary hover:underline text-center">
-              Mark all as read
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Notification Dropdown — real context-based */}
+      <NotificationDropdown open={showNotifications} onClose={() => setShowNotifications(false)} />
 
       {/* Menu Dropdown */}
       <AnimatePresence>
@@ -153,11 +109,6 @@ function Home() {
       {/* Search Overlay */}
       <AnimatePresence>
         {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
-      </AnimatePresence>
-
-      {/* ChatBot */}
-      <AnimatePresence>
-        {showChat && <ChatBot onClose={() => setShowChat(false)} />}
       </AnimatePresence>
 
       {/* Main Content - Add top padding for fixed navbar */}

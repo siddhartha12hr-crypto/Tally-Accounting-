@@ -6,11 +6,6 @@ import { useData } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  ThumbsUp,
-  ThumbsDown,
-  Share2,
-  Download,
-  BookmarkPlus,
   Play,
   Clock,
   Eye,
@@ -35,13 +30,18 @@ export const Route = createFileRoute("/watch/$videoId")({
 function WatchPage() {
   const { videoId } = Route.useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated, hasPurchased, purchaseContent } = useAuth();
+  const { user, isAuthenticated, hasPurchased, purchaseContent, isLoading } = useAuth();
   const { videos, courses } = useData();
   
   const [showDescription, setShowDescription] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Find the video or course — must be before any useEffect that uses them
+  const video = videos.find(v => v.id === videoId);
+  const course = courses.find(c => c.id === videoId);
+  const content = video || course;
 
   // Save progress when course is opened
   useEffect(() => {
@@ -52,7 +52,6 @@ function WatchPage() {
       try {
         const raw = localStorage.getItem("tally_course_progress");
         const data = raw ? JSON.parse(raw) : {};
-        // Mark as started (5%) if not already further along
         if (!data[videoId] || data[videoId] < 5) {
           data[videoId] = 5;
           localStorage.setItem("tally_course_progress", JSON.stringify(data));
@@ -61,51 +60,47 @@ function WatchPage() {
     }
   }, [content, videoId, hasPurchased, video]);
 
-  // Find the video or course
-  const video = videos.find(v => v.id === videoId);
-  const course = courses.find(c => c.id === videoId);
-  const content = video || course;
-
   useEffect(() => {
+    // Don't redirect while auth is still loading
+    if (isLoading) return;
+
     if (!content) {
       toast.error("Content not found");
-      navigate({ to: "/learn" });
+      navigate({ to: "/courses" });
       return;
     }
 
     const isFree = content.price === "Free" || content.price === "₹0";
-    const isPurchased = video 
+    const isPurchased = video
       ? hasPurchased(videoId, 'video')
       : hasPurchased(videoId, 'course');
 
-    // Allow free content immediately
-    if (isFree) {
-      return;
-    }
+    if (isFree) return;
 
-    // For paid content, check authentication
     if (!isAuthenticated) {
       toast.info("Please login to watch this content");
-      navigate({ 
-        to: "/login",
-        search: { redirect: `/watch/${videoId}` }
-      });
+      navigate({ to: "/login", search: { redirect: `/watch/${videoId}` } });
       return;
     }
 
-    // For paid content, check if purchased
-    // If not purchased, ALWAYS redirect to payment (no auto-purchase)
     if (!isPurchased) {
       toast.info("This is premium content. Complete payment to unlock.");
       navigate({ to: `/payment/${videoId}` });
       return;
     }
-
-    // If purchased, user can watch (this code is reached)
-  }, [content, videoId, isAuthenticated, hasPurchased, navigate, video]);
+  }, [content, videoId, isAuthenticated, hasPurchased, navigate, video, isLoading]);
 
   if (!content) {
     return null;
+  }
+
+  // Show loading while auth resolves (prevents flash redirect)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
   }
 
   const isFree = content.price === "Free" || content.price === "₹0";
@@ -151,27 +146,47 @@ function WatchPage() {
           {/* Video Player */}
           <div className="relative aspect-video bg-black">
             {isFree || isPurchased ? (
-              // Actual video player (using placeholder for demo)
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
-                <div className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="relative"
-                  >
-                    <div className="absolute inset-0 blur-3xl opacity-30">
-                      <div className="h-full w-full bg-gradient-to-r from-primary via-purple-500 to-primary animate-pulse"></div>
-                    </div>
-                    <Play className="relative h-24 w-24 mx-auto text-white/80 mb-4 drop-shadow-2xl" />
+              // Real video player
+              video?.url ? (
+                <video
+                  key={video.url}
+                  className="absolute inset-0 w-full h-full"
+                  controls
+                  autoPlay
+                  playsInline
+                  src={video.url}
+                  onEnded={() => {
+                    // Save 100% progress
+                    if (typeof window !== "undefined") {
+                      try {
+                        const raw = localStorage.getItem("tally_course_progress");
+                        const data = raw ? JSON.parse(raw) : {};
+                        data[videoId] = 100;
+                        localStorage.setItem("tally_course_progress", JSON.stringify(data));
+                      } catch {}
+                    }
+                    toast.success("Lesson complete! 🎉");
+                  }}
+                  style={{ background: "#000" }}
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 text-center px-6">
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                    <CheckCircle className="h-16 w-16 mx-auto text-green-400 mb-4" />
                   </motion.div>
-                  <p className="text-white/90 text-sm font-semibold mb-2">
-                    {video ? "Video URL: " + video.url : "Course content ready"}
+                  <h3 className="text-white text-xl font-black mb-2">{course?.title}</h3>
+                  <p className="text-white/70 text-sm mb-4">{course?.description}</p>
+                  <p className="text-white/50 text-xs">
+                    {course?.lessons} lessons · {course?.duration}
                   </p>
-                  <p className="text-white/60 text-xs mt-2">
-                    (In production, embed actual video player here)
-                  </p>
+                  <button
+                    onClick={() => navigate({ to: "/courses" })}
+                    className="mt-6 px-6 py-2.5 rounded-full gradient-hero text-white font-bold text-sm"
+                  >
+                    ← Back to Courses
+                  </button>
                 </div>
-              </div>
+              )
             ) : (
               // Locked content
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -212,7 +227,15 @@ function WatchPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl glass p-5 shadow-card"
             >
-              <h1 className="text-2xl font-black mb-3 leading-tight">{content.title}</h1>
+              <div className="flex items-center gap-3 mb-3">
+                <button
+                  onClick={() => navigate({ to: "/courses" })}
+                  className="h-8 w-8 rounded-xl glass flex items-center justify-center flex-shrink-0"
+                >
+                  <BookOpen className="h-4 w-4" />
+                </button>
+                <h1 className="text-xl font-black leading-tight">{content.title}</h1>
+              </div>
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 {video && (
                   <>

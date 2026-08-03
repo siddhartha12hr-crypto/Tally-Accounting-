@@ -1,23 +1,41 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
+import { TallyVideoPlayer } from "@/components/TallyVideoPlayer";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { toast } from "sonner";
-import { Star, Clock, Users, BookOpen, Lock, FileText } from "lucide-react";
+import {
+  Star, Clock, Users, BookOpen, Lock,
+  FileText, Play, CheckCircle, ChevronRight, ArrowLeft,
+} from "lucide-react";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
     meta: [
-      { title: "Premium Courses — Tally Accounting Hub Pro" },
-      { name: "description", content: "Hand-picked premium courses for Tally, accounting, GST, Excel and more." },
+      { title: "Courses — Tally Hub Pro" },
+      { name: "description", content: "Browse and enroll in free and premium Tally courses." },
     ],
   }),
   component: Courses,
 });
 
-const palettes = ["gradient-saffron", "gradient-royal", "gradient-hero", "gradient-gold"];
+/* ── progress helpers (SSR-safe) ──────────────────────────── */
+const PROGRESS_KEY = "tally_course_progress";
 
+function getProgress(courseId: string): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? (JSON.parse(raw)[courseId] ?? 0) : 0;
+  } catch { return 0; }
+}
+
+const TALLY_ERP_ID = "tally-erp-free";
+
+/* ── PDF opener ─────────────────────────────────────────────── */
 function openPdf(pdfUrl: string) {
   if (!pdfUrl) return;
   if (pdfUrl.startsWith("data:")) {
@@ -41,197 +59,305 @@ const NOTE_ACCENT_COLORS = [
   "#db2777","#8b0000","#0e6b8f","#876a00",
 ];
 
+/* ── Progress bar ─────────────────────────────────────────── */
+function ProgressBar({ courseId }: { courseId: string }) {
+  const pct = getProgress(courseId);
+  if (pct === 0) return null;
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground mb-1">
+        <span>Progress</span>
+        <span className="text-primary font-black">{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full gradient-hero" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Main component ─────────────────────────────────────────── */
 function Courses() {
   const { courses, notes } = useData();
-  const { isAuthenticated, hasPurchased, purchaseContent } = useAuth();
+  const { isAuthenticated, hasPurchased, purchaseContent, user } = useAuth();
+  const { add: addNotification } = useNotifications();
   const navigate = useNavigate();
-  
+
+  const [showPlayer, setShowPlayer] = useState(false);
+
+  /* Enrolled admin courses */
+  const enrolledCourses = courses.filter(c =>
+    user?.purchasedCourses?.includes(c.id)
+  );
+
+  /* ── Inline Tally ERP player ──────────────────────────────── */
+  if (showPlayer) {
+    return (
+      <AppShell>
+        <div className="pt-4 pb-3 flex items-center gap-3">
+          <button
+            onClick={() => setShowPlayer(false)}
+            className="h-9 w-9 rounded-xl glass flex items-center justify-center"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">Free Course</p>
+            <h1 className="text-lg font-black mt-0">Tally ERP Complete Course</h1>
+          </div>
+        </div>
+        <div className="-mx-4 pb-6">
+          <TallyVideoPlayer />
+        </div>
+      </AppShell>
+    );
+  }
+
+  /* ── Enroll handler ──────────────────────────────────────── */
   const handleEnroll = (courseId: string, price: string) => {
     const isFree = price === "Free" || price === "₹0";
-    
-    // Must be logged in
     if (!isAuthenticated) {
       toast.info("Please login to enroll in this course");
-      navigate({ to: "/login", search: { redirect: `/courses` } });
+      navigate({ to: "/login", search: { redirect: "/courses" } });
       return;
     }
-
-    // Already enrolled
-    if (hasPurchased(courseId, 'course')) {
+    if (hasPurchased(courseId, "course")) {
       toast.info("You're already enrolled — opening course");
       navigate({ to: `/watch/${courseId}` });
       return;
     }
-
     if (isFree) {
-      // Enroll immediately — save to user account
-      purchaseContent(courseId, 'course');
-      toast.success("Enrolled successfully! Opening course…");
-      navigate({ to: `/watch/${courseId}` });
+      purchaseContent(courseId, "course");
+      addNotification({
+        type: "course",
+        title: "Enrollment Successful! 🎉",
+        body: `You're now enrolled in "${courses.find(c => c.id === courseId)?.title ?? "the course"}". Start learning!`,
+        link: "/learn",
+      });
+      toast.success("Enrolled! Opening course…");
+      setTimeout(() => navigate({ to: `/watch/${courseId}` }), 150);
       return;
     }
-
-    // Premium — go to payment
     navigate({ to: `/payment/${courseId}` });
   };
-  
+
   return (
     <AppShell>
-      <PageHeader eyebrow="Courses" title="Premium Courses" subtitle="Master-level programs taught by top instructors." />
-      <div className="grid gap-4">
-        {courses.map((course, idx) => (
-          <motion.article
-            key={course.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="overflow-hidden rounded-3xl glass shadow-card"
-          >
-            {/* Course Header with Thumbnail */}
-            <div className="relative h-32">
-              <img 
-                src={course.thumbnail} 
-                alt={course.title}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-              <div className="absolute inset-0 flex items-end p-4 text-white">
-                <h3 className="text-lg font-black leading-tight drop-shadow-lg">{course.title}</h3>
-              </div>
-              <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-foreground shadow-lg">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {course.rating}
-              </div>
-              {/* Price Badge */}
-              <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg flex items-center gap-1">
-                {course.price !== "Free" && course.price !== "₹0" && !isAuthenticated && (
-                  <Lock className="h-3 w-3" />
-                )}
-                {course.price}
-              </div>
-            </div>
-            
-            {/* Course Details */}
-            <div className="p-4">
-              <p className="text-xs text-muted-foreground">
-                By <span className="font-semibold text-foreground">{course.instructor}</span>
-              </p>
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{course.description}</p>
-              
-              {/* Stats */}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground font-semibold">
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> {course.duration}
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <BookOpen className="h-3 w-3" /> {course.lessons} lessons
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Users className="h-3 w-3" /> {course.students}
-                </span>
-              </div>
-              
-              {/* Category Badge */}
-              <div className="mt-3">
-                <span className="inline-block text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full">
-                  {course.category}
-                </span>
-              </div>
-              
-              {/* Enroll Button */}
-              <button 
-                onClick={() => handleEnroll(course.id, course.price)}
-                className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow"
-              >
-                {hasPurchased(course.id, 'course')
-                  ? "Continue Learning →"
-                  : course.price === "Free" || course.price === "₹0"
-                  ? "Start Learning Free"
-                  : isAuthenticated
-                  ? "Enroll Now"
-                  : "Login to Enroll"}
-              </button>
-            </div>
-          </motion.article>
-        ))}
+      {/* ── Header ────────────────────────────────────────────── */}
+      <div className="pt-4 pb-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">My Learning</p>
+        <h1 className="text-2xl font-black mt-0.5">Continue Learning</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {isAuthenticated
+            ? `${enrolledCourses.length + 1} course${enrolledCourses.length + 1 !== 1 ? "s" : ""} enrolled`
+            : "Free Tally ERP course available"}
+        </p>
       </div>
 
-      {/* Empty State */}
-      {courses.length === 0 && (
-        <div className="text-center py-12 rounded-2xl glass">
-          <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground font-semibold">No courses available yet</p>
-          <p className="text-xs text-muted-foreground mt-1">New courses coming soon!</p>
-        </div>
+      {/* ── Free Tally ERP ────────────────────────────────────── */}
+      <section className="mb-6">
+        <h2 className="text-sm font-black mb-3 text-muted-foreground uppercase tracking-widest">Free Course</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl glass shadow-card overflow-hidden"
+        >
+          <div className="relative h-36">
+            <img
+              src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80"
+              alt="Tally ERP"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute inset-0 flex items-end p-4 text-white">
+              <div>
+                <span className="text-[10px] font-bold bg-green-500 px-2 py-0.5 rounded-full mb-1 inline-block">FREE</span>
+                <h3 className="text-base font-black leading-tight">Tally ERP Complete Course</h3>
+              </div>
+            </div>
+            <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> 4.9
+            </div>
+          </div>
+          <div className="p-4">
+            <p className="text-xs text-muted-foreground">By <span className="font-semibold text-foreground">Tally Academy</span></p>
+            <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground font-semibold">
+              <span className="inline-flex items-center gap-1"><BookOpen className="h-3 w-3" /> 61 lessons</span>
+              <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> 50,000+ students</span>
+              <span className="inline-flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" /> Always free</span>
+            </div>
+            <ProgressBar courseId={TALLY_ERP_ID} />
+            <button
+              onClick={() => setShowPlayer(true)}
+              className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow flex items-center justify-center gap-2"
+            >
+              <Play className="h-3.5 w-3.5" />
+              {getProgress(TALLY_ERP_ID) > 0 ? "Continue Learning" : "Start Learning"}
+            </button>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── Enrolled admin courses ────────────────────────────── */}
+      {isAuthenticated && enrolledCourses.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-sm font-black mb-3 text-muted-foreground uppercase tracking-widest">My Courses</h2>
+          <div className="grid gap-4">
+            {enrolledCourses.map((course, idx) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="rounded-3xl glass shadow-card overflow-hidden"
+              >
+                <div className="relative h-32">
+                  <img src={course.thumbnail} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 flex items-end p-4 text-white">
+                    <h3 className="text-base font-black leading-tight">{course.title}</h3>
+                  </div>
+                  <div className="absolute top-3 left-3 rounded-full bg-green-500/90 px-3 py-1 text-xs font-bold text-white flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> Enrolled
+                  </div>
+                  <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {course.rating}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <p className="text-xs text-muted-foreground">By <span className="font-semibold text-foreground">{course.instructor}</span></p>
+                  <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground font-semibold">
+                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {course.duration}</span>
+                    <span className="inline-flex items-center gap-1"><BookOpen className="h-3 w-3" /> {course.lessons} lessons</span>
+                  </div>
+                  <ProgressBar courseId={course.id} />
+                  <button
+                    onClick={() => navigate({ to: `/watch/${course.id}` })}
+                    className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow flex items-center justify-center gap-2"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    {getProgress(course.id) > 0 ? "Continue Learning" : "Start Learning"}
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
       )}
 
-      {/* ── View Notes Section ────────────────────────── */}
+      {/* ── All available admin courses (catalog) ─────────────── */}
+      {courses.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-sm font-black mb-3 text-muted-foreground uppercase tracking-widest">All Courses</h2>
+          <div className="grid gap-4">
+            {courses.map((course, idx) => (
+              <motion.article
+                key={course.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="overflow-hidden rounded-3xl glass shadow-card"
+              >
+                <div className="relative h-32">
+                  <img src={course.thumbnail} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 flex items-end p-4 text-white">
+                    <h3 className="text-lg font-black leading-tight drop-shadow-lg">{course.title}</h3>
+                  </div>
+                  <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-foreground shadow-lg">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {course.rating}
+                  </div>
+                  <div className="absolute top-3 left-3 rounded-full bg-primary/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow-lg flex items-center gap-1">
+                    {course.price !== "Free" && course.price !== "₹0" && !isAuthenticated && <Lock className="h-3 w-3" />}
+                    {course.price}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <p className="text-xs text-muted-foreground">By <span className="font-semibold text-foreground">{course.instructor}</span></p>
+                  <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{course.description}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground font-semibold">
+                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {course.duration}</span>
+                    <span className="inline-flex items-center gap-1"><BookOpen className="h-3 w-3" /> {course.lessons} lessons</span>
+                    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {course.students}</span>
+                  </div>
+                  <div className="mt-3">
+                    <span className="inline-block text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full">{course.category}</span>
+                  </div>
+                  <button
+                    onClick={() => handleEnroll(course.id, course.price)}
+                    className="mt-4 w-full rounded-full gradient-hero px-4 py-2.5 text-xs font-bold text-white shadow-glow"
+                  >
+                    {hasPurchased(course.id, "course")
+                      ? "Continue Learning →"
+                      : course.price === "Free" || course.price === "₹0"
+                      ? "Start Learning Free"
+                      : isAuthenticated
+                      ? "Enroll Now"
+                      : "Login to Enroll"}
+                  </button>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── CTAs ─────────────────────────────────────────────── */}
+      {!isAuthenticated && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl glass p-6 text-center shadow-card mb-6">
+          <Lock className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+          <h3 className="font-black text-base mb-1">Login to Track Progress</h3>
+          <p className="text-sm text-muted-foreground mb-4">Login to enroll in premium courses and save your progress.</p>
+          <button onClick={() => navigate({ to: "/login" })}
+            className="px-6 py-2.5 rounded-full gradient-hero text-white font-bold text-sm shadow-glow">
+            Login Now
+          </button>
+        </motion.div>
+      )}
+
+      {/* ── View Notes ───────────────────────────────────────── */}
       {(() => {
         const courseNotes = notes.filter(n => n.showInCourses && n.status === "published");
         if (courseNotes.length === 0) return null;
         return (
-          <div className="mt-8">
-            {/* Section header */}
-            <div
-              className="mx-[-1rem] px-4 py-4 mb-5 flex items-center justify-between"
-              style={{ background: "linear-gradient(135deg,#1a3a8f,#0e6b8f)" }}
-            >
+          <div className="mt-4 mb-6">
+            <div className="mx-[-1rem] px-4 py-4 mb-5 flex items-center justify-between"
+              style={{ background: "linear-gradient(135deg,#1a3a8f,#0e6b8f)" }}>
               <h2 className="text-white text-lg font-black tracking-wide flex items-center gap-2">
                 <FileText className="h-5 w-5" /> View Notes
               </h2>
               <span className="text-white/70 text-xs font-semibold">{courseNotes.length} available</span>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               {courseNotes.map((note, idx) => {
                 const accent = NOTE_ACCENT_COLORS[idx % NOTE_ACCENT_COLORS.length];
                 return (
-                  <motion.div
-                    key={note.id}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <motion.div key={note.id}
+                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.13)" }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                      if (note.pdfUrl) openPdf(note.pdfUrl);
-                      else toast.info("No PDF attached to this note yet.");
-                    }}
+                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => { if (note.pdfUrl) openPdf(note.pdfUrl); else toast.info("No PDF attached yet."); }}
                     className="flex flex-col rounded-2xl overflow-hidden cursor-pointer"
-                    style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
-                  >
-                    {/* Thumbnail */}
+                    style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
                     <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      {note.thumbnailUrl ? (
-                        <img src={note.thumbnailUrl} alt={note.title}
-                          className="w-full h-full object-cover"
-                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"
-                          style={{ background: `${accent}18` }}>
-                          <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
-                        </div>
-                      )}
+                      {note.thumbnailUrl
+                        ? <img src={note.thumbnailUrl} alt={note.title} className="w-full h-full object-cover"
+                            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        : <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
+                            <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
+                          </div>}
                       {note.pdfUrl && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg"
                           style={{ background: "rgba(22,163,74,0.85)" }}>
                           <FileText className="h-3 w-3 text-white" />
-                          <span className="text-[9px] font-bold text-white tracking-wide">PDF</span>
+                          <span className="text-[9px] font-bold text-white">PDF</span>
                         </div>
                       )}
                     </div>
-                    {/* Info */}
                     <div className="px-3 py-3">
-                      <p className="text-sm font-black leading-tight line-clamp-2" style={{ color: accent }}>
-                        {note.title}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
-                        {note.description || note.category}
-                      </p>
-                      {note.readingTime && note.readingTime !== "—" && (
-                        <p className="text-[10px] text-muted-foreground mt-1 font-semibold">
-                          📖 {note.readingTime} · {note.difficulty}
-                        </p>
-                      )}
+                      <p className="text-sm font-black leading-tight line-clamp-2" style={{ color: accent }}>{note.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{note.description || note.category}</p>
                     </div>
                   </motion.div>
                 );
