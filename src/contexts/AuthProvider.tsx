@@ -231,9 +231,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const purchaseContent = (contentId: string, type: 'course' | 'video') => {
     if (!user) return;
-    const updated = { ...user };
-    if (type === 'course') { if (!updated.purchasedCourses.includes(contentId)) updated.purchasedCourses.push(contentId); }
-    else { if (!updated.purchasedVideos.includes(contentId)) updated.purchasedVideos.push(contentId); }
+    const updated: AuthUser = type === 'course'
+      ? {
+          ...user,
+          purchasedCourses: user.purchasedCourses.includes(contentId)
+            ? user.purchasedCourses
+            : [...user.purchasedCourses, contentId],
+        }
+      : {
+          ...user,
+          purchasedVideos: user.purchasedVideos.includes(contentId)
+            ? user.purchasedVideos
+            : [...user.purchasedVideos, contentId],
+        };
     setUser(updated);
     lsSet(USER_KEY, JSON.stringify(updated));
     // Also persist to usersDB so it survives logout/login

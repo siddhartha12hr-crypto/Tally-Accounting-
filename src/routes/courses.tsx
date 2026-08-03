@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/AppShell";
 import { TallyVideoPlayer } from "@/components/TallyVideoPlayer";
@@ -59,9 +59,10 @@ const NOTE_ACCENT_COLORS = [
   "#db2777","#8b0000","#0e6b8f","#876a00",
 ];
 
-/* ── Progress bar ─────────────────────────────────────────── */
+/* ── Progress bar — client-only (avoids SSR hydration mismatch) ── */
 function ProgressBar({ courseId }: { courseId: string }) {
-  const pct = getProgress(courseId);
+  const [pct, setPct] = useState(0);
+  useEffect(() => { setPct(getProgress(courseId)); }, [courseId]);
   if (pct === 0) return null;
   return (
     <div className="mt-3">
@@ -86,9 +87,7 @@ function Courses() {
   const [showPlayer, setShowPlayer] = useState(false);
 
   /* Enrolled admin courses */
-  const enrolledCourses = courses.filter(c =>
-    user?.purchasedCourses?.includes(c.id)
-  );
+  const enrolledCourses = courses.filter(c => hasPurchased(c.id, "course"));
 
   /* ── Inline Tally ERP player ──────────────────────────────── */
   if (showPlayer) {
@@ -122,8 +121,8 @@ function Courses() {
       return;
     }
     if (hasPurchased(courseId, "course")) {
-      toast.info("You're already enrolled — opening course");
-      navigate({ to: `/watch/${courseId}` });
+      toast.info("You're already enrolled — opening My Learning");
+      navigate({ to: "/learn" });
       return;
     }
     if (isFree) {
@@ -135,7 +134,7 @@ function Courses() {
         link: "/learn",
       });
       toast.success("Enrolled! Opening course…");
-      setTimeout(() => navigate({ to: `/watch/${courseId}` }), 150);
+      setTimeout(() => navigate({ to: "/learn" }), 150);
       return;
     }
     navigate({ to: `/payment/${courseId}` });
@@ -341,12 +340,14 @@ function Courses() {
                     className="flex flex-col rounded-2xl overflow-hidden cursor-pointer"
                     style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
                     <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      {note.thumbnailUrl
-                        ? <img src={note.thumbnailUrl} alt={note.title} className="w-full h-full object-cover"
-                            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        : <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
-                            <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
-                          </div>}
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
+                        <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
+                      </div>
+                      {note.thumbnailUrl && (
+                        <img src={note.thumbnailUrl} alt={note.title} className="absolute inset-0 w-full h-full object-cover"
+                          suppressHydrationWarning
+                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      )}
                       {note.pdfUrl && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg"
                           style={{ background: "rgba(22,163,74,0.85)" }}>

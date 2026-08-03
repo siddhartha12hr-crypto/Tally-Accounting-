@@ -82,18 +82,15 @@ const TALLY_ERP_ID = "tally-erp-free";
 /* ── Main component ─────────────────────────────────────── */
 function LearnPage() {
   const navigate  = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, hasPurchased } = useAuth();
   const { courses } = useData();
 
   /* enrolled admin courses */
-  const enrolledCourses = courses.filter(c => user?.purchasedCourses?.includes(c.id));
+  const enrolledCourses = courses.filter(c => hasPurchased(c.id, "course"));
 
-  /* Tally ERP player state */
-  const [currentVideo, setCurrentVideo] = useState<TallyVideo>(() => {
-    const lastId = getLastVideo();
-    return TALLY_VIDEOS.find(v => v.id === lastId) ?? TALLY_VIDEOS[0];
-  });
-  const [completed,   setCompleted]   = useState<Set<number>>(getCompleted);
+  /* Tally ERP player state — initialized with safe defaults for SSR */
+  const [currentVideo, setCurrentVideo] = useState<TallyVideo>(TALLY_VIDEOS[0]);
+  const [completed,   setCompleted]   = useState<Set<number>>(new Set());
   const [playing,     setPlaying]     = useState(false);
   const [progress,    setProgress]    = useState(0);
   const [duration,    setDuration]    = useState(0);
@@ -102,7 +99,15 @@ function LearnPage() {
   const [showPlayer,  setShowPlayer]  = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const erpProgress = getProgress(TALLY_ERP_ID);
+  /* Load persisted state from localStorage after hydration (client-only) */
+  useEffect(() => {
+    setCompleted(getCompleted());
+    const lastId = getLastVideo();
+    const last = TALLY_VIDEOS.find(v => v.id === lastId);
+    if (last) setCurrentVideo(last);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const completedCount = completed.size;
   const totalLessons   = TALLY_VIDEOS.length;
   const pct = Math.round((completedCount / totalLessons) * 100);

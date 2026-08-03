@@ -125,7 +125,7 @@ function PaymentPage() {
           toast.success("Course unlocked successfully! 🎉");
           
           setTimeout(() => {
-            navigate({ to: `/watch/${contentId}` });
+            navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
           }, 500);
         } else {
           toast.error("Invalid purchase code. Please check and try again.");
@@ -137,7 +137,7 @@ function PaymentPage() {
         toast.success("Course unlocked successfully! 🎉");
         
         setTimeout(() => {
-          navigate({ to: `/watch/${contentId}` });
+          navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
         }, 500);
       }
     } catch (error) {
@@ -172,7 +172,7 @@ function PaymentPage() {
       toast.success("Demo purchase successful! 🎉");
       
       setTimeout(() => {
-        navigate({ to: `/watch/${contentId}` });
+        navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
       }, 500);
     } catch (error) {
       console.error("Purchase error:", error);

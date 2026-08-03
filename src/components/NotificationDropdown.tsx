@@ -120,7 +120,7 @@ export function NotificationDropdown({ open, onClose }: Props) {
                           )}
                         </div>
                         <p className="text-[11px] text-gray-400 mt-0.5 leading-snug line-clamp-2">{n.body}</p>
-                        <p className="text-[10px] text-gray-300 mt-1 font-medium">{relativeTime(n.time)}</p>
+                        <p className="text-[10px] text-gray-300 mt-1 font-medium" suppressHydrationWarning>{relativeTime(n.time)}</p>
                       </div>
 
                       {/* Delete */}

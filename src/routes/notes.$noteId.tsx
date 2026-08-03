@@ -112,21 +112,22 @@ function NoteDetails() {
 
         {/* Thumbnail hero */}
         <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9", background: "#1a3a8f14" }}>
-          {note.thumbnailUrl ? (
+          {/* Fallback always rendered (SSR-safe) */}
+          <div className="w-full h-full flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg,#1a3a8f22,#0e6b8f11)" }}>
+            <FileText className="h-16 w-16 text-primary opacity-30" />
+          </div>
+          {note.thumbnailUrl && (
             <motion.img
               src={note.thumbnailUrl}
               alt={note.title}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
               initial={{ scale: 1.05, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.4 }}
+              suppressHydrationWarning
               onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#1a3a8f22,#0e6b8f11)" }}>
-              <FileText className="h-16 w-16 text-primary opacity-30" />
-            </div>
           )}
           {/* Gradient overlay at bottom */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

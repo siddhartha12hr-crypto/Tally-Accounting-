@@ -63,7 +63,8 @@ function lsSave(userId: string, data: Notification[]) {
   try { localStorage.setItem(storageKey(userId), JSON.stringify(data)); } catch {}
 }
 
-function relativeTime(iso: string): string {
+export function relativeTime(iso: string): string {
+  if (typeof window === "undefined") return ""; // SSR — don't compute time
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
   if (s < 60)  return "just now";
@@ -94,18 +95,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     lsSave(user.id, notifications);
   }, [notifications, user?.id]);
 
-  /* Seed initial notifications for new users */
+  /* Seed initial notifications for new users — only on client to avoid SSR mismatch */
   useEffect(() => {
     if (!user) return;
     const stored = lsLoad(user.id);
     if (stored.length === 0) {
+      const now = Date.now();
       const seed: Notification[] = [
         {
           id: "seed-1",
           type: "course",
           title: "Welcome to Tally Hub Pro! 🎉",
           body: "Start with the free Tally ERP course to begin your journey.",
-          time: new Date(Date.now() - 60_000).toISOString(),
+          time: new Date(now - 60_000).toISOString(),
           read: false,
           link: "/learn",
           userId: user.id,
@@ -115,7 +117,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           type: "quiz",
           title: "Quiz Available",
           body: "Test your Tally knowledge with our interactive quiz.",
-          time: new Date(Date.now() - 3_600_000).toISOString(),
+          time: new Date(now - 3_600_000).toISOString(),
           read: false,
           link: "/quiz",
           userId: user.id,
@@ -125,7 +127,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           type: "note",
           title: "Study Notes Ready",
           body: "New Tally & GST notes are available to download.",
-          time: new Date(Date.now() - 86_400_000).toISOString(),
+          time: new Date(now - 86_400_000).toISOString(),
           read: false,
           link: "/notes",
           userId: user.id,
@@ -133,6 +135,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       ];
       setNotifications(seed);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const add = useCallback((n: Omit<Notification, "id" | "time" | "read" | "userId">) => {
@@ -179,4 +182,3 @@ export function useNotifications() {
   return ctx;
 }
 
-export { relativeTime };

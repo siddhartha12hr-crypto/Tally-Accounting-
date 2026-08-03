@@ -114,15 +114,16 @@ function NotesList() {
                     style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
                   >
                     <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      {note.thumbnailUrl ? (
+                      {/* Always render the icon fallback first (SSR-safe), then overlay image */}
+                      <div className="w-full h-full flex items-center justify-center"
+                        style={{ background: `${accent}18` }}>
+                        <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
+                      </div>
+                      {note.thumbnailUrl && (
                         <img src={note.thumbnailUrl} alt={note.title}
-                          className="w-full h-full object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
+                          suppressHydrationWarning
                           onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"
-                          style={{ background: `${accent}18` }}>
-                          <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
-                        </div>
                       )}
                       {note.pdfUrl && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg"
