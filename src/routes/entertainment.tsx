@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PinLock } from "@/components/PinLock";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { MOVIES } from "@/lib/moviesData";
 import { Play, Plus, Star, Search, X, ChevronRight, Info } from "lucide-react";
 
@@ -13,12 +15,15 @@ export const Route = createFileRoute("/entertainment")({
 const GENRES = ["All", "Action", "Drama", "Comedy/Drama", "Nepali", "Biography", "Epic Action"];
 
 function Entertainment() {
+  const { isVisible } = useModuleVisibility();
   const navigate      = useNavigate();
   const [query,        setQuery]        = useState("");
   const [activeGenre,  setActiveGenre]  = useState("All");
   const [featured,     setFeatured]     = useState(MOVIES[0]);
   const [showInfo,     setShowInfo]     = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  if (!isVisible("movies")) return <ModuleUnavailable name="Movies" />;
 
   const filtered = useMemo(() => {
     let list = MOVIES;

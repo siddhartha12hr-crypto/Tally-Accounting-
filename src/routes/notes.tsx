@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -179,6 +181,8 @@ function NotesList() {
 }
 
 function Notes() {
+  const { isVisible } = useModuleVisibility();
+  if (!isVisible("notes")) return <ModuleUnavailable name="Notes" />;
   const matchRoute = useMatchRoute();
   const onChild    = matchRoute({ to: "/notes/$noteId", fuzzy: true });
   return onChild ? <Outlet /> : <NotesList />;

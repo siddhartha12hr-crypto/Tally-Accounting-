@@ -41,6 +41,7 @@ export interface Database {
           thumbnail: string | null;
           category: string;
           price: string;
+          video_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -103,6 +104,15 @@ export interface Database {
         };
         Insert: Omit<Database["public"]["Tables"]["notes"]["Row"], "id" | "created_at" | "updated_at"> & { id?: string };
         Update: Partial<Database["public"]["Tables"]["notes"]["Insert"]>;
+      };
+      app_settings: {
+        Row: {
+          key: string;
+          value: Json;
+          updated_at: string;
+        };
+        Insert: { key: string; value: Json; updated_at?: string };
+        Update: Partial<{ value: Json; updated_at: string }>;
       };
       users: {
         Row: {

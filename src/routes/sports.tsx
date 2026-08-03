@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { PinLock } from "@/components/PinLock";
 import { useData } from "@/contexts/DataContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { Trophy, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/sports")({
@@ -12,6 +14,8 @@ export const Route = createFileRoute("/sports")({
 });
 
 function Sports() {
+  const { isVisible } = useModuleVisibility();
+  if (!isVisible("sports")) return <ModuleUnavailable name="Live Sports" />;
   return (
     <PinLock title="Sports Access">
       <AppShell>

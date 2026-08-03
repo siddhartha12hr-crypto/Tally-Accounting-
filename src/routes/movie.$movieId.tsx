@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { MOVIES } from "@/lib/moviesData";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import {
   Play, ArrowLeft, Star, Clock, Globe,
   Calendar, User, Film, Users,
@@ -11,9 +13,12 @@ export const Route = createFileRoute("/movie/$movieId")({
 });
 
 function MovieDetail() {
+  const { isVisible } = useModuleVisibility();
   const { movieId } = Route.useParams();
   const navigate    = useNavigate();
   const movie       = MOVIES.find(m => m.id === movieId);
+
+  if (!isVisible("movies")) return <ModuleUnavailable name="Movies" />;
 
   if (!movie) {
     return (

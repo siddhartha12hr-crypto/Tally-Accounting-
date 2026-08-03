@@ -1,39 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Bell, Database, Shield, Save } from "lucide-react";
+import { Lock, Bell, Database, Shield, Save, Eye, EyeOff, GraduationCap, Film, Trophy, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useModuleVisibility, type ModuleKey } from "@/contexts/ModuleVisibilityContext";
+import { DEFAULT_APP_SETTINGS, useAppSettings } from "@/contexts/AppSettingsContext";
+import { toast } from "sonner";
 
 export function AdminSettings() {
-  const [settings, setSettings] = useState({
-    // Security Settings
-    adminPin: "9090",
-    userPin: "1234",
-    enableTwoFactor: false,
-    sessionTimeout: "30",
-    
-    // Notification Settings
-    emailNotifications: true,
-    pushNotifications: true,
-    smsAlerts: false,
-    weeklyReports: true,
-    
-    // System Settings
-    maxUploadSize: "100",
-    enableCache: true,
-    maintenanceMode: false,
-    backupFrequency: "daily",
-  });
+  const { visibility, setVisibility } = useModuleVisibility();
+  const { settings: persistedSettings, saveSettings } = useAppSettings();
+  const [settings, setSettings] = useState(DEFAULT_APP_SETTINGS);
+
+  useEffect(() => setSettings(persistedSettings), [persistedSettings]);
 
   const [saved, setSaved] = useState(false);
 
-  const handleSave = () => {
-    // In a real app, this would save to backend
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      await saveSettings(settings);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save settings");
+    }
   };
 
   const settingSections = [
@@ -144,6 +137,45 @@ export function AdminSettings() {
 
   return (
     <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl glass p-5 shadow-card"
+      >
+        <h3 className="text-lg font-black mb-1 flex items-center gap-2">
+          <Eye className="h-5 w-5 text-primary" /> Module Visibility
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">Disabled modules are removed from Home Quick Access and their user routes are blocked.</p>
+        <div className="space-y-3">
+          {([
+            ["courses", "Courses", GraduationCap],
+            ["movies", "Movies", Film],
+            ["sports", "Live Sports", Trophy],
+            ["notes", "Notes", FileText],
+          ] as const).map(([key, label, Icon]) => (
+            <div key={key} className="flex items-center justify-between gap-4 rounded-xl p-3 hover:bg-accent/20">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><Icon className="h-4 w-4" /></div>
+                <div>
+                  <Label className="text-sm font-bold">{label}</Label>
+                  <p className="text-xs text-muted-foreground">{visibility[key] ? "Visible to users" : "Hidden from users"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {visibility[key] ? <Eye className="h-4 w-4 text-green-600" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                <Switch
+                  checked={visibility[key]}
+                  onCheckedChange={(checked) => {
+                    void setVisibility(key as ModuleKey, checked)
+                      .then(() => toast.success(`${label} is now ${checked ? "visible" : "hidden"}`))
+                      .catch(() => toast.error("Could not save module visibility"));
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
       {settingSections.map((section, sectionIdx) => {
         const Icon = section.icon;
         return (

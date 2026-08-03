@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Users, Clock, BookOpen, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Clock, BookOpen, Search, FileVideo } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ interface Course {
   thumbnail: string;
   category: string;
   price: string;
+  videoUrl?: string;
 }
 
 export function AdminCourses() {
@@ -57,6 +58,7 @@ export function AdminCourses() {
     category: "",
     price: "",
     isFree: false,
+    videoUrl: "",
   });
 
   const categories = [
@@ -91,6 +93,10 @@ export function AdminCourses() {
         toast.error("Please select a category");
         return;
       }
+      if (!formData.videoUrl) {
+        toast.error("Please choose a course video");
+        return;
+      }
       if (!formData.isFree && !formData.price?.trim()) {
         toast.error("Please enter a price or mark the course as free");
         return;
@@ -108,6 +114,7 @@ export function AdminCourses() {
         thumbnail: formData.thumbnail || "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400",
         category: formData.category,
         price: formData.isFree ? "Free" : formData.price,
+        videoUrl: formData.videoUrl,
       };
       
       addCourse(newCourse);
@@ -134,6 +141,7 @@ export function AdminCourses() {
       category: course.category,
       price: course.price,
       isFree: course.price === "Free" || course.price === "₹0",
+      videoUrl: course.videoUrl || "",
     });
   };
 
@@ -169,6 +177,7 @@ export function AdminCourses() {
           thumbnail: formData.thumbnail || editingCourse.thumbnail,
           category: formData.category,
           price: formData.isFree ? "Free" : formData.price,
+          videoUrl: formData.videoUrl || editingCourse.videoUrl,
         };
         
         updateCourse(editingCourse.id, updatedFields);
@@ -207,6 +216,7 @@ export function AdminCourses() {
       category: "",
       price: "",
       isFree: false,
+      videoUrl: "",
     });
   };
 
@@ -292,6 +302,11 @@ export function AdminCourses() {
                   <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                     {course.category}
                   </span>
+                  {course.videoUrl && (
+                    <span className="text-[10px] font-bold bg-green-500/10 text-green-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <FileVideo className="h-3 w-3" /> Video attached
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0">
@@ -356,6 +371,25 @@ function CourseForm({
   onSubmit: () => void;
   onCancel: () => void;
 }) {
+  const handleVideoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Please choose a video file");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Choose a video file smaller than 3 MB for local storage");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setFormData({ ...formData, videoUrl: String(reader.result) });
+    reader.onerror = () => toast.error("The course video could not be read");
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -508,6 +542,19 @@ function CourseForm({
           className="mt-1.5 rounded-xl"
           placeholder="https://..."
         />
+      </div>
+      <div>
+        <Label htmlFor="course-video">Course Video</Label>
+        <Input
+          id="course-video"
+          type="file"
+          accept="video/*"
+          onChange={handleVideoFileChange}
+          className="mt-1.5 rounded-xl cursor-pointer file:mr-3 file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-bold file:text-primary"
+        />
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          {formData.videoUrl ? "Video attached and ready to save." : "Choose an MP4 or other video file (up to 3 MB)."}
+        </p>
       </div>
       <div className="flex gap-2 pt-2">
         <Button onClick={onSubmit} className="flex-1 rounded-xl gradient-hero text-white shadow-glow">

@@ -6,6 +6,8 @@ import { TallyVideoPlayer } from "@/components/TallyVideoPlayer";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { toast } from "sonner";
 import {
   Star, Clock, Users, BookOpen, Lock,
@@ -79,12 +81,15 @@ function ProgressBar({ courseId }: { courseId: string }) {
 
 /* ── Main component ─────────────────────────────────────────── */
 function Courses() {
+  const { isVisible } = useModuleVisibility();
   const { courses, notes } = useData();
   const { isAuthenticated, hasPurchased, purchaseContent, user } = useAuth();
   const { add: addNotification } = useNotifications();
   const navigate = useNavigate();
 
   const [showPlayer, setShowPlayer] = useState(false);
+
+  if (!isVisible("courses")) return <ModuleUnavailable name="Courses" />;
 
   /* Enrolled admin courses */
   const enrolledCourses = courses.filter(c => hasPurchased(c.id, "course"));
@@ -114,29 +119,17 @@ function Courses() {
 
   /* ── Enroll handler ──────────────────────────────────────── */
   const handleEnroll = (courseId: string, price: string) => {
-    const isFree = price === "Free" || price === "₹0";
     if (!isAuthenticated) {
       toast.info("Please login to enroll in this course");
       navigate({ to: "/login", search: { redirect: "/courses" } });
       return;
     }
+    // Already enrolled → go straight to player
     if (hasPurchased(courseId, "course")) {
-      toast.info("You're already enrolled — opening My Learning");
-      navigate({ to: "/learn" });
+      navigate({ to: `/watch/${courseId}` });
       return;
     }
-    if (isFree) {
-      purchaseContent(courseId, "course");
-      addNotification({
-        type: "course",
-        title: "Enrollment Successful! 🎉",
-        body: `You're now enrolled in "${courses.find(c => c.id === courseId)?.title ?? "the course"}". Start learning!`,
-        link: "/learn",
-      });
-      toast.success("Enrolled! Opening course…");
-      setTimeout(() => navigate({ to: "/learn" }), 150);
-      return;
-    }
+    // All courses (free or paid) → show payment/enrollment page first
     navigate({ to: `/payment/${courseId}` });
   };
 
@@ -314,59 +307,6 @@ function Courses() {
           </button>
         </motion.div>
       )}
-
-      {/* ── View Notes ───────────────────────────────────────── */}
-      {(() => {
-        const courseNotes = notes.filter(n => n.showInCourses && n.status === "published");
-        if (courseNotes.length === 0) return null;
-        return (
-          <div className="mt-4 mb-6">
-            <div className="mx-[-1rem] px-4 py-4 mb-5 flex items-center justify-between"
-              style={{ background: "linear-gradient(135deg,#1a3a8f,#0e6b8f)" }}>
-              <h2 className="text-white text-lg font-black tracking-wide flex items-center gap-2">
-                <FileText className="h-5 w-5" /> View Notes
-              </h2>
-              <span className="text-white/70 text-xs font-semibold">{courseNotes.length} available</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {courseNotes.map((note, idx) => {
-                const accent = NOTE_ACCENT_COLORS[idx % NOTE_ACCENT_COLORS.length];
-                return (
-                  <motion.div key={note.id}
-                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { if (note.pdfUrl) openPdf(note.pdfUrl); else toast.info("No PDF attached yet."); }}
-                    className="flex flex-col rounded-2xl overflow-hidden cursor-pointer"
-                    style={{ background: "#fff2f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
-                    <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
-                        <FileText className="h-12 w-12" style={{ color: accent, opacity: 0.45 }} />
-                      </div>
-                      {note.thumbnailUrl && (
-                        <img src={note.thumbnailUrl} alt={note.title} className="absolute inset-0 w-full h-full object-cover"
-                          suppressHydrationWarning
-                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      )}
-                      {note.pdfUrl && (
-                        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg"
-                          style={{ background: "rgba(22,163,74,0.85)" }}>
-                          <FileText className="h-3 w-3 text-white" />
-                          <span className="text-[9px] font-bold text-white">PDF</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="px-3 py-3">
-                      <p className="text-sm font-black leading-tight line-clamp-2" style={{ color: accent }}>{note.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{note.description || note.category}</p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
     </AppShell>
   );
 }

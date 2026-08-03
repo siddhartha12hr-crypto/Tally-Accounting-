@@ -35,8 +35,15 @@ create table if not exists public.courses (
   thumbnail   text,
   category    text not null,
   price       text not null default 'Free',
+  video_url   text,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
+);
+
+create table if not exists public.app_settings (
+  key        text primary key,
+  value      jsonb not null,
+  updated_at timestamptz not null default now()
 );
 
 -- ── Movies ──────────────────────────────────────────────────
@@ -112,6 +119,7 @@ begin new.updated_at = now(); return new; end; $$;
 
 create trigger videos_updated_at  before update on public.videos  for each row execute procedure public.set_updated_at();
 create trigger courses_updated_at before update on public.courses for each row execute procedure public.set_updated_at();
+create trigger app_settings_updated_at before update on public.app_settings for each row execute procedure public.set_updated_at();
 create trigger movies_updated_at  before update on public.movies  for each row execute procedure public.set_updated_at();
 create trigger sports_updated_at  before update on public.sports  for each row execute procedure public.set_updated_at();
 create trigger notes_updated_at   before update on public.notes   for each row execute procedure public.set_updated_at();
@@ -119,6 +127,7 @@ create trigger notes_updated_at   before update on public.notes   for each row e
 -- ── Row Level Security ───────────────────────────────────────
 alter table public.videos  enable row level security;
 alter table public.courses enable row level security;
+alter table public.app_settings enable row level security;
 alter table public.movies  enable row level security;
 alter table public.sports  enable row level security;
 alter table public.notes   enable row level security;
@@ -127,6 +136,7 @@ alter table public.users   enable row level security;
 -- Public read access for published content
 create policy "Public can read videos"  on public.videos  for select using (true);
 create policy "Public can read courses" on public.courses for select using (true);
+create policy "Public can read app settings" on public.app_settings for select using (true);
 create policy "Public can read movies"  on public.movies  for select using (true);
 create policy "Public can read sports"  on public.sports  for select using (true);
 create policy "Public can read notes"   on public.notes   for select using (status = 'published');
@@ -136,6 +146,7 @@ create policy "Public can read users"   on public.users   for select using (true
 -- Or use anon key with additional auth checks
 create policy "Anon full access videos"  on public.videos  for all using (true) with check (true);
 create policy "Anon full access courses" on public.courses for all using (true) with check (true);
+create policy "Anon full access app settings" on public.app_settings for all using (true) with check (true);
 create policy "Anon full access movies"  on public.movies  for all using (true) with check (true);
 create policy "Anon full access sports"  on public.sports  for all using (true) with check (true);
 create policy "Anon full access notes"   on public.notes   for all using (true) with check (true);

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,17 +41,19 @@ function PaymentPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "purchase">("whatsapp");
-  
-  // Purchase code state
   const [purchaseCode, setPurchaseCode] = useState("");
-  
-  // WhatsApp phone number (admin)
-  const WHATSAPP_NUMBER = "+9779823415625"; // Nepal number
+  const { add: addNotification } = useNotifications();
 
-  // Find the content
+  // Find the content FIRST before using it
   const video = videos.find(v => v.id === contentId);
   const course = courses.find(c => c.id === contentId);
   const content = video || course;
+
+  const isFree = content ? (content.price === "Free" || content.price === "₹0") : false;
+  const contentType = video ? 'video' : 'course';
+
+  // WhatsApp phone number (admin)
+  const WHATSAPP_NUMBER = "+9779823415625";
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -70,31 +73,25 @@ function PaymentPage() {
       return;
     }
 
-    // Redirect if content is free
+    // Redirect if already purchased/enrolled (go straight to video)
     const isFree = content.price === "Free" || content.price === "₹0";
-    if (isFree) {
-      toast.info("This content is free!");
+    const isPurchased = video
+      ? hasPurchased(contentId, 'video')
+      : hasPurchased(contentId, 'course');
+
+    if (isPurchased) {
+      toast.success("You're already enrolled!");
       navigate({ to: `/watch/${contentId}` });
       return;
     }
 
-    // Redirect if already purchased
-    const isPurchased = video 
-      ? hasPurchased(contentId, 'video')
-      : hasPurchased(contentId, 'course');
-    
-    if (isPurchased) {
-      toast.success("You already own this content!");
-      navigate({ to: `/watch/${contentId}` });
-      return;
-    }
+    // Free courses show the page (don't auto-redirect)
+    // Paid courses also show the page
   }, [isAuthenticated, content, contentId, navigate, hasPurchased, video]);
 
   if (!content || !isAuthenticated) {
     return null;
   }
-
-  const contentType = video ? 'video' : 'course';
 
   // Purchase codes database (in production, these would be in backend)
   const PURCHASE_CODES: Record<string, string[]> = {
@@ -122,11 +119,8 @@ function PaymentPage() {
         if (purchaseCode.length >= 8) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           purchaseContent(contentId, contentType);
-          toast.success("Course unlocked successfully! 🎉");
-          
-          setTimeout(() => {
-            navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
-          }, 500);
+          toast.success("Course unlocked! Opening now… 🎉");
+          setTimeout(() => { navigate({ to: `/watch/${contentId}` }); }, 500);
         } else {
           toast.error("Invalid purchase code. Please check and try again.");
         }
@@ -134,11 +128,8 @@ function PaymentPage() {
         // Valid code from database
         await new Promise(resolve => setTimeout(resolve, 1000));
         purchaseContent(contentId, contentType);
-        toast.success("Course unlocked successfully! 🎉");
-        
-        setTimeout(() => {
-          navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
-        }, 500);
+        toast.success("Course unlocked! Opening now… 🎉");
+        setTimeout(() => { navigate({ to: `/watch/${contentId}` }); }, 500);
       }
     } catch (error) {
       console.error("Purchase code error:", error);
@@ -169,11 +160,8 @@ function PaymentPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       purchaseContent(contentId, contentType);
-      toast.success("Demo purchase successful! 🎉");
-      
-      setTimeout(() => {
-        navigate({ to: contentType === "course" ? "/learn" : `/watch/${contentId}` });
-      }, 500);
+      toast.success("Enrolled! Opening course… 🎉");
+      setTimeout(() => { navigate({ to: `/watch/${contentId}` }); }, 500);
     } catch (error) {
       console.error("Purchase error:", error);
       toast.error("Purchase failed. Please try again.");
@@ -208,13 +196,50 @@ function PaymentPage() {
                   <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black">Purchase Course</h1>
+                  <h1 className="text-2xl font-black">
+                    {isFree ? "Enroll for Free" : "Purchase Course"}
+                  </h1>
                   <p className="text-sm text-muted-foreground">
-                    Buy via WhatsApp or enter purchase code
+                    {isFree ? "This course is completely free" : "Buy via WhatsApp or enter purchase code"}
                   </p>
                 </div>
               </div>
 
+              {/* ── FREE COURSE — single enroll button ── */}
+              {isFree && (
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-6 text-center">
+                    <div className="text-4xl mb-3">🎓</div>
+                    <h3 className="text-lg font-black text-green-700 mb-1">This Course is Free!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Enroll instantly with one click — no payment required.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      setIsProcessing(true);
+                      purchaseContent(contentId, contentType);
+                      addNotification({
+                        type: "course",
+                        title: "Enrolled Successfully! 🎉",
+                        body: `You're now enrolled in "${content.title}". Start learning!`,
+                        link: "/learn",
+                      });
+                      toast.success("Enrolled! Opening course…");
+                      setTimeout(() => navigate({ to: `/watch/${contentId}` }), 400);
+                      setIsProcessing(false);
+                    }}
+                    disabled={isProcessing}
+                    className="w-full rounded-xl gradient-hero text-white shadow-glow font-bold py-6 text-base"
+                  >
+                    {isProcessing ? "Enrolling…" : "✅ Enroll Now — Start Learning"}
+                  </Button>
+                </div>
+              )}
+
+              {/* ── PAID COURSE — existing payment methods ── */}
+              {!isFree && (
+              <>
               {/* Payment Method Selection */}
               <div className="mb-6">
                 <Label className="text-sm font-bold mb-3 block">Purchase Method</Label>
@@ -417,7 +442,9 @@ function PaymentPage() {
                   <span>Instant Delivery</span>
                 </div>
               </div>
-            </motion.div>
+            </>
+            )}
+          </motion.div>
           </div>
 
           {/* Order Summary */}

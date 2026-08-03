@@ -27,6 +27,7 @@ export interface Course {
   thumbnail: string;
   category: string;
   price: string;
+  videoUrl?: string;
 }
 
 export interface Video {
@@ -167,7 +168,7 @@ function dbCourse(r: any): Course {
     description: r.description ?? "", duration: r.duration ?? "—",
     lessons: r.lessons ?? 0, rating: r.rating ?? 0,
     students: r.students ?? "0", thumbnail: r.thumbnail ?? "",
-    category: r.category, price: r.price ?? "Free",
+    category: r.category, price: r.price ?? "Free", videoUrl: r.video_url ?? "",
   };
 }
 function dbMovie(r: any): Movie {
@@ -270,7 +271,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         description: data.description, duration: data.duration,
         lessons: data.lessons, rating: data.rating,
         students: data.students, thumbnail: data.thumbnail,
-        category: data.category, price: data.price,
+        category: data.category, price: data.price, video_url: data.videoUrl ?? null,
       }).select().single();
       if (!error && row) { setCourses(p => [dbCourse(row), ...p]); return; }
       console.error("Supabase addCourse:", error);
@@ -292,6 +293,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         ...(data.thumbnail    && { thumbnail:   data.thumbnail }),
         ...(data.category     && { category:    data.category }),
         ...(data.price        && { price:       data.price }),
+        ...(data.videoUrl     !== undefined && { video_url:   data.videoUrl }),
       }).eq("id", id);
       if (!error) { setCourses(p => p.map(c => c.id === id ? { ...c, ...data } : c)); return; }
       console.error("Supabase updateCourse:", error);

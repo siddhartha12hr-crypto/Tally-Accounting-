@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DataProvider } from "@/contexts/DataContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { ModuleVisibilityProvider } from "@/contexts/ModuleVisibilityContext";
+import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 
 function NotFoundComponent() {
   return (
@@ -137,11 +139,15 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DataProvider>
-          <NotificationProvider>
-            <AuthGuard>
-              <Outlet />
-            </AuthGuard>
-          </NotificationProvider>
+          <AppSettingsProvider>
+            <ModuleVisibilityProvider>
+              <NotificationProvider>
+                <AuthGuard>
+                  <Outlet />
+                </AuthGuard>
+              </NotificationProvider>
+            </ModuleVisibilityProvider>
+          </AppSettingsProvider>
         </DataProvider>
       </AuthProvider>
     </QueryClientProvider>

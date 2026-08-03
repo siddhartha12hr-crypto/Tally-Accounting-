@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import {
   ArrowLeft, FileText, Clock, BookOpen, User,
   Tag, BarChart2, Calendar, ExternalLink, Download, Share2,
@@ -18,9 +20,11 @@ const DIFFICULTY_STYLE: Record<string, { bg: string; color: string }> = {
 };
 
 function NoteDetails() {
+  const { isVisible } = useModuleVisibility();
   const navigate       = useNavigate();
   const { noteId }     = Route.useParams();
   const { notes }      = useData();
+  if (!isVisible("notes")) return <ModuleUnavailable name="Notes" />;
   const note           = notes.find(n => n.id === noteId);
 
   /* ── not found ── */

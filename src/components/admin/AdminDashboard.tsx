@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  TrendingUp, Users, Video, Trophy,
+  TrendingUp, Users, Trophy,
   Film, GraduationCap, Eye, FileText,
 } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
@@ -9,13 +9,6 @@ export function AdminDashboard() {
   const { videos, courses, movies, sports, notes, isLoading } = useData();
 
   const stats = [
-    {
-      label: "Videos",
-      value: videos.length,
-      icon: Video,
-      color: "gradient-royal",
-      sub: `${videos.filter(v => v.price === "Free").length} free`,
-    },
     {
       label: "Courses",
       value: courses.length,
@@ -43,14 +36,6 @@ export function AdminDashboard() {
       icon: FileText,
       color: "gradient-royal",
       sub: `${notes.filter(n => n.status === "draft").length} drafts`,
-    },
-    {
-      label: "Total Views",
-      value: videos.reduce((sum, v) => sum + (v.views || 0), 0),
-      icon: Eye,
-      color: "gradient-gold",
-      sub: "across all videos",
-      format: (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n),
     },
   ];
 

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS courses (
     description TEXT,
     short_description VARCHAR(500),
     thumbnail VARCHAR(500),
+    video_url TEXT,
     instructor_name VARCHAR(255) NOT NULL,
     instructor_bio TEXT,
     instructor_image VARCHAR(500),

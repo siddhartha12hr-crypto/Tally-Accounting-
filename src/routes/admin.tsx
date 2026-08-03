@@ -5,11 +5,9 @@ import { AppShell } from "@/components/AppShell";
 import { PinLock } from "@/components/PinLock";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
-  LayoutDashboard, Video, Trophy, Film,
-  GraduationCap, Settings, FileText,
-  ShieldCheck,
+  LayoutDashboard, Trophy, Film,
+  GraduationCap, Settings, FileText, ShieldCheck,
 } from "lucide-react";
-import { AdminVideos }    from "@/components/admin/AdminVideos";
 import { AdminSports }    from "@/components/admin/AdminSports";
 import { AdminMovies }    from "@/components/admin/AdminMovies";
 import { AdminCourses }   from "@/components/admin/AdminCourses";
@@ -22,11 +20,10 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type TabId = "dashboard" | "videos" | "sports" | "movies" | "courses" | "notes" | "settings";
+type TabId = "dashboard" | "sports" | "movies" | "courses" | "notes" | "settings";
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "videos",    label: "Videos",    icon: Video },
   { id: "courses",   label: "Courses",   icon: GraduationCap },
   { id: "notes",     label: "Notes",     icon: FileText },
   { id: "movies",    label: "Movies",    icon: Film },
@@ -38,13 +35,13 @@ function AdminPage() {
   const [tab, setTab] = useState<TabId>("dashboard");
 
   return (
-    <PinLock title="Admin Panel" pin="9090">
+    <PinLock title="Admin Panel" access="admin">
       <div className="relative min-h-screen overflow-x-hidden pb-28">
 
-        {/* ── Fixed top bar ────────────────────────────────── */}
+        {/* Top bar */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
           <div className="mx-auto max-w-2xl px-4 h-16 flex items-center gap-3">
-          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <div className="h-9 w-9 rounded-xl gradient-hero flex items-center justify-center shadow-glow flex-shrink-0">
                 <ShieldCheck className="h-5 w-5 text-white" />
               </div>
@@ -56,7 +53,7 @@ function AdminPage() {
           </div>
         </div>
 
-        {/* ── Tab nav (scrollable pill row) ────────────────── */}
+        {/* Tab nav */}
         <div className="fixed top-16 left-0 right-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
           <div className="mx-auto max-w-2xl">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 py-2.5">
@@ -65,9 +62,7 @@ function AdminPage() {
                   key={id}
                   onClick={() => setTab(id)}
                   className={`relative shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold transition-all duration-200 ${
-                    tab === id
-                      ? "text-white shadow-glow"
-                      : "text-muted-foreground glass hover:text-foreground"
+                    tab === id ? "text-white shadow-glow" : "text-muted-foreground glass hover:text-foreground"
                   }`}
                 >
                   {tab === id && (
@@ -85,7 +80,7 @@ function AdminPage() {
           </div>
         </div>
 
-        {/* ── Content ──────────────────────────────────────── */}
+        {/* Content */}
         <div className="pt-32 pb-6">
           <div className="mx-auto max-w-2xl px-4">
             <AnimatePresence mode="wait">
@@ -98,7 +93,6 @@ function AdminPage() {
               >
                 <ErrorBoundary key={`eb-${tab}`}>
                   {tab === "dashboard" && <AdminDashboard />}
-                  {tab === "videos"    && <AdminVideos />}
                   {tab === "sports"    && <AdminSports />}
                   {tab === "movies"    && <AdminMovies />}
                   {tab === "courses"   && <AdminCourses />}

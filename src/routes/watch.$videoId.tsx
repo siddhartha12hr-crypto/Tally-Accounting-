@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -32,6 +34,7 @@ function WatchPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, hasPurchased, purchaseContent, isLoading } = useAuth();
   const { videos, courses } = useData();
+  const { isVisible } = useModuleVisibility();
   
   const [showDescription, setShowDescription] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -42,6 +45,7 @@ function WatchPage() {
   const video = videos.find(v => v.id === videoId);
   const course = courses.find(c => c.id === videoId);
   const content = video || course;
+  const contentVideoUrl = video?.url || course?.videoUrl;
 
   // Save progress when course is opened
   useEffect(() => {
@@ -93,6 +97,8 @@ function WatchPage() {
   if (!content) {
     return null;
   }
+
+  if (course && !isVisible("courses")) return <ModuleUnavailable name="Courses" />;
 
   // Show loading while auth resolves (prevents flash redirect)
   if (isLoading) {
@@ -147,14 +153,14 @@ function WatchPage() {
           <div className="relative aspect-video bg-black">
             {isFree || isPurchased ? (
               // Real video player
-              video?.url ? (
+              contentVideoUrl ? (
                 <video
-                  key={video.url}
+                  key={contentVideoUrl}
                   className="absolute inset-0 w-full h-full"
                   controls
                   autoPlay
                   playsInline
-                  src={video.url}
+                  src={contentVideoUrl}
                   onEnded={() => {
                     // Save 100% progress
                     if (typeof window !== "undefined") {

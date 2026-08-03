@@ -40,6 +40,7 @@ export const quickActions = [
   { label: "Notes",         icon: "FileText",      to: "/notes",         gradient: "linear-gradient(135deg,#ea580c,#f59e0b)", bg: "#fff7ed", external: false },
   { label: "Courses",       icon: "GraduationCap", to: "/courses",       gradient: "linear-gradient(135deg,#7c3aed,#a855f7)", bg: "#f5f3ff", external: false },
   { label: "Entertainment", icon: "Film",           to: "/entertainment", gradient: "linear-gradient(135deg,#db2777,#f43f5e)", bg: "#fff1f2", external: false },
+  { label: "Live Sports",   icon: "Trophy",         to: "/sports",        gradient: "linear-gradient(135deg,#dc2626,#f97316)", bg: "#fff7ed", external: false },
   { label: "Tally Quiz",    icon: "HelpCircle",    to: "/quiz",          gradient: "linear-gradient(135deg,#059669,#10b981)", bg: "#f0fdf4", external: false },
   {
     label: "Support",

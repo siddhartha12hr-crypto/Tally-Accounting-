@@ -7,11 +7,12 @@ import { quickActions } from "@/lib/mockData";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import logoImg from "../../imgfile/logo.png";
-import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Bell, Search, MoreVertical } from "lucide-react";
+import { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Bell, Search, MoreVertical, Trophy } from "lucide-react";
 
-const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle };
+const iconMap: Record<string, React.ElementType> = { BookOpen, FileText, PlayCircle, HelpCircle, Film, GraduationCap, MessageCircle, Trophy };
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +28,7 @@ function Home() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { unreadCount } = useNotifications();
+  const { isVisible } = useModuleVisibility();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMenu, setShowMenu]     = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -128,7 +130,13 @@ function Home() {
             <p className="text-xs text-muted-foreground mt-0.5">Start learning instantly</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {quickActions.map((a, idx) => {
+            {quickActions.filter(action => {
+              if (action.to === "/courses") return isVisible("courses");
+              if (action.to === "/notes") return isVisible("notes");
+              if (action.to === "/entertainment") return isVisible("movies");
+              if (action.to === "/sports") return isVisible("sports");
+              return true;
+            }).map((a, idx) => {
               const Icon = iconMap[a.icon];
               const card = (
                 <motion.div

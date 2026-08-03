@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/AppShell";
 import { useData } from "@/contexts/DataContext";
+import { useModuleVisibility } from "@/contexts/ModuleVisibilityContext";
+import { ModuleUnavailable } from "@/components/ModuleUnavailable";
 import { ArrowLeft, BookOpen, ExternalLink, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,9 +24,11 @@ function openNote(pdfUrl: string) {
 }
 
 function CourseNotesPage() {
+  const { isVisible } = useModuleVisibility();
   const { courseId } = Route.useParams();
   const navigate = useNavigate();
   const { courses, notes } = useData();
+  if (!isVisible("courses")) return <ModuleUnavailable name="Courses" />;
   const course = courses.find((item) => item.id === courseId);
   const courseNotes = notes.filter((note) => {
     if (!course || note.status !== "published") return false;

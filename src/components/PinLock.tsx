@@ -2,10 +2,13 @@ import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Delete } from "lucide-react";
 import { BottomNav } from "./BottomNav";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 const CORRECT_PIN = "9090";
 
-export function PinLock({ title, pin: correctPin = CORRECT_PIN, children }: { title: string; pin?: string; children: ReactNode }) {
+export function PinLock({ title, pin: configuredPin, access = "user", children }: { title: string; pin?: string; access?: "admin" | "user"; children: ReactNode }) {
+  const { settings } = useAppSettings();
+  const correctPin = configuredPin ?? (access === "admin" ? settings.adminPin : settings.userPin ?? CORRECT_PIN);
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
