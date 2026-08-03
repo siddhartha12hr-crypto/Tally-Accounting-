@@ -208,12 +208,28 @@ function dbNote(r: any): Note {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [courses,   setCourses]   = useState<Course[]>(() => load(KEYS.COURSES, []));
-  const [videos,    setVideos]    = useState<Video[]>(() => load(KEYS.VIDEOS, []));
-  const [sports,    setSports]    = useState<Sport[]>(() => load(KEYS.SPORTS, []));
-  const [movies,    setMovies]    = useState<Movie[]>(() => load(KEYS.MOVIES, []));
-  const [notes,     setNotes]     = useState<Note[]>(() => load(KEYS.NOTES, []));
+  const [courses,   setCourses]   = useState<Course[]>([]);
+  const [videos,    setVideos]    = useState<Video[]>([]);
+  const [sports,    setSports]    = useState<Sport[]>([]);
+  const [movies,    setMovies]    = useState<Movie[]>([]);
+  const [notes,     setNotes]     = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  /* ── Load from localStorage on client mount (SSR-safe) ── */
+  useEffect(() => {
+    if (isSupabaseConfigured) return; // Supabase fetch will handle it
+    const c = load(KEYS.COURSES, [] as Course[]);
+    const v = load(KEYS.VIDEOS,  [] as Video[]);
+    const s = load(KEYS.SPORTS,  [] as Sport[]);
+    const m = load(KEYS.MOVIES,  [] as Movie[]);
+    const n = load(KEYS.NOTES,   [] as Note[]);
+    if (c.length) setCourses(c);
+    if (v.length) setVideos(v);
+    if (s.length) setSports(s);
+    if (m.length) setMovies(m);
+    if (n.length) setNotes(n);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── Derived stats ── */
   const stats: AdminStats = {
