@@ -175,7 +175,7 @@ function PaymentPage() {
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate({ to: "/learn" })}
+          onClick={() => navigate({ to: "/courses" })}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -196,50 +196,13 @@ function PaymentPage() {
                   <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black">
-                    {isFree ? "Enroll for Free" : "Purchase Course"}
-                  </h1>
+                  <h1 className="text-2xl font-black">Purchase Course</h1>
                   <p className="text-sm text-muted-foreground">
-                    {isFree ? "This course is completely free" : "Buy via WhatsApp or enter purchase code"}
+                    Buy via WhatsApp or enter purchase code
                   </p>
                 </div>
               </div>
 
-              {/* ── FREE COURSE — single enroll button ── */}
-              {isFree && (
-                <div className="space-y-4">
-                  <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-6 text-center">
-                    <div className="text-4xl mb-3">🎓</div>
-                    <h3 className="text-lg font-black text-green-700 mb-1">This Course is Free!</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Enroll instantly with one click — no payment required.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={async () => {
-                      setIsProcessing(true);
-                      purchaseContent(contentId, contentType);
-                      addNotification({
-                        type: "course",
-                        title: "Enrolled Successfully! 🎉",
-                        body: `You're now enrolled in "${content.title}". Start learning!`,
-                        link: "/learn",
-                      });
-                      toast.success("Enrolled! Opening course…");
-                      setTimeout(() => navigate({ to: `/watch/${contentId}` }), 400);
-                      setIsProcessing(false);
-                    }}
-                    disabled={isProcessing}
-                    className="w-full rounded-xl gradient-hero text-white shadow-glow font-bold py-6 text-base"
-                  >
-                    {isProcessing ? "Enrolling…" : "✅ Enroll Now — Start Learning"}
-                  </Button>
-                </div>
-              )}
-
-              {/* ── PAID COURSE — existing payment methods ── */}
-              {!isFree && (
-              <>
               {/* Payment Method Selection */}
               <div className="mb-6">
                 <Label className="text-sm font-bold mb-3 block">Purchase Method</Label>
@@ -442,9 +405,7 @@ function PaymentPage() {
                   <span>Instant Delivery</span>
                 </div>
               </div>
-            </>
-            )}
-          </motion.div>
+            </motion.div>
           </div>
 
           {/* Order Summary */}
