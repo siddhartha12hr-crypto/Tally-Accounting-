@@ -22,6 +22,7 @@ interface ModuleVisibilityContextType {
 const ModuleVisibilityContext = createContext<ModuleVisibilityContextType | undefined>(undefined);
 
 function readLocal(): ModuleVisibility {
+  if (typeof window === "undefined") return DEFAULT_VISIBILITY;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? { ...DEFAULT_VISIBILITY, ...JSON.parse(raw) } : DEFAULT_VISIBILITY;

@@ -32,6 +32,7 @@ interface AppSettingsContextType {
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
 
 function readLocal(): AppSettings {
+  if (typeof window === "undefined") return DEFAULT_APP_SETTINGS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? { ...DEFAULT_APP_SETTINGS, ...JSON.parse(raw) } : DEFAULT_APP_SETTINGS;
