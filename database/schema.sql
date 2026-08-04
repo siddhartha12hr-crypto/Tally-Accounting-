@@ -112,6 +112,21 @@ create table if not exists public.users (
   created_at        timestamptz not null default now()
 );
 
+-- ── Sliders (home page hero carousel) ───────────────────────
+create table if not exists public.sliders (
+  id          uuid primary key default uuid_generate_v4(),
+  image       text not null,
+  title       text,
+  subtitle    text,
+  button_text text,
+  button_link text,
+  has_button  boolean not null default false,
+  is_active   boolean not null default true,
+  position    integer not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
 -- ── Updated_at triggers ─────────────────────────────────────
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
@@ -123,6 +138,7 @@ create trigger app_settings_updated_at before update on public.app_settings for 
 create trigger movies_updated_at  before update on public.movies  for each row execute procedure public.set_updated_at();
 create trigger sports_updated_at  before update on public.sports  for each row execute procedure public.set_updated_at();
 create trigger notes_updated_at   before update on public.notes   for each row execute procedure public.set_updated_at();
+create trigger sliders_updated_at before update on public.sliders for each row execute procedure public.set_updated_at();
 
 -- ── Row Level Security ───────────────────────────────────────
 alter table public.videos  enable row level security;
@@ -132,6 +148,7 @@ alter table public.movies  enable row level security;
 alter table public.sports  enable row level security;
 alter table public.notes   enable row level security;
 alter table public.users   enable row level security;
+alter table public.sliders enable row level security;
 
 -- Public read access for published content
 create policy "Public can read videos"  on public.videos  for select using (true);
@@ -141,6 +158,7 @@ create policy "Public can read movies"  on public.movies  for select using (true
 create policy "Public can read sports"  on public.sports  for select using (true);
 create policy "Public can read notes"   on public.notes   for select using (status = 'published');
 create policy "Public can read users"   on public.users   for select using (true);
+create policy "Public can read sliders" on public.sliders for select using (is_active = true);
 
 -- Service role (admin) has full access — use service_role key in admin panel
 -- Or use anon key with additional auth checks
@@ -151,3 +169,4 @@ create policy "Anon full access movies"  on public.movies  for all using (true) 
 create policy "Anon full access sports"  on public.sports  for all using (true) with check (true);
 create policy "Anon full access notes"   on public.notes   for all using (true) with check (true);
 create policy "Anon full access users"   on public.users   for all using (true) with check (true);
+create policy "Anon full access sliders" on public.sliders for all using (true) with check (true);

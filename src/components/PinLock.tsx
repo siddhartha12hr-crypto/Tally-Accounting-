@@ -86,7 +86,7 @@ export function PinLock({ title, pin: configuredPin, access = "user", children }
         </div>
       </motion.div>
     </div>
-      <BottomNav />
+      {access !== "admin" && <BottomNav />}
     </div>
   );
 }

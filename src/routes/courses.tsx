@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import {
   Star, Clock, Users, BookOpen, Lock,
   FileText, Play, CheckCircle, ChevronRight, ArrowLeft,
+  Ticket, Loader2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/courses")({
@@ -83,11 +84,13 @@ function ProgressBar({ courseId }: { courseId: string }) {
 function Courses() {
   const { isVisible } = useModuleVisibility();
   const { courses, notes } = useData();
-  const { isAuthenticated, hasPurchased, purchaseContent, user } = useAuth();
+  const { isAuthenticated, hasPurchased, purchaseContent, user, redeemPurchaseCode } = useAuth();
   const { add: addNotification } = useNotifications();
   const navigate = useNavigate();
 
   const [showPlayer, setShowPlayer] = useState(false);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
   if (!isVisible("courses")) return <ModuleUnavailable name="Courses" />;
 
@@ -116,6 +119,29 @@ function Courses() {
       </AppShell>
     );
   }
+
+  /* ── Redeem handler ──────────────────────────────────── */
+  const handleRedeem = async () => {
+    if (!redeemCode.trim()) {
+      toast.error("Enter a code first");
+      return;
+    }
+    setIsRedeeming(true);
+    const result = await redeemPurchaseCode(redeemCode);
+    setIsRedeeming(false);
+    if (result.success) {
+      toast.success(result.message);
+      setRedeemCode("");
+      addNotification({
+        type: "course",
+        title: "Course Unlocked! 🎉",
+        body: result.message,
+        link: "/courses",
+      });
+    } else {
+      toast.error(result.message);
+    }
+  };
 
   /* ── Enroll handler ──────────────────────────────────────── */
   const handleEnroll = (courseId: string, price: string) => {
@@ -159,6 +185,38 @@ function Courses() {
             : "Free Tally ERP course available"}
         </p>
       </div>
+
+      {/* ── Redeem Code ─────────────────────────────────────── */}
+      {isAuthenticated && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="mb-5 rounded-3xl glass p-4 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl gradient-hero shadow-glow">
+              <Ticket className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black">Have a purchase code?</h2>
+              <p className="text-[10px] text-muted-foreground">Enter the code from admin to unlock courses</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={redeemCode}
+              onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+              placeholder="TALLY-XXXX-XXXX"
+              className="flex-1 rounded-xl bg-muted/30 border border-border px-3 py-2 text-xs font-mono font-bold tracking-wider focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button
+              onClick={handleRedeem}
+              disabled={isRedeeming || !redeemCode.trim()}
+              className="rounded-xl gradient-hero px-4 py-2 text-xs font-bold text-white shadow-glow disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {isRedeeming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {isRedeeming ? "Redeeming…" : "Redeem"}
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* ── Free Tally ERP ────────────────────────────────────── */}
       <section className="mb-6">

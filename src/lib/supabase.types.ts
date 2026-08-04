@@ -25,7 +25,10 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["videos"]["Row"], "id" | "created_at" | "updated_at" | "views"> & { id?: string; views?: number };
+        Insert: Omit<
+          Database["public"]["Tables"]["videos"]["Row"],
+          "id" | "created_at" | "updated_at" | "views"
+        > & { id?: string; views?: number };
         Update: Partial<Database["public"]["Tables"]["videos"]["Insert"]>;
       };
       courses: {
@@ -45,7 +48,10 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["courses"]["Row"], "id" | "created_at" | "updated_at"> & { id?: string };
+        Insert: Omit<
+          Database["public"]["Tables"]["courses"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["courses"]["Insert"]>;
       };
       movies: {
@@ -65,7 +71,10 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["movies"]["Row"], "id" | "created_at" | "updated_at"> & { id?: string };
+        Insert: Omit<
+          Database["public"]["Tables"]["movies"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["movies"]["Insert"]>;
       };
       sports: {
@@ -82,7 +91,10 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["sports"]["Row"], "id" | "created_at" | "updated_at"> & { id?: string };
+        Insert: Omit<
+          Database["public"]["Tables"]["sports"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["sports"]["Insert"]>;
       };
       notes: {
@@ -102,7 +114,10 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["notes"]["Row"], "id" | "created_at" | "updated_at"> & { id?: string };
+        Insert: Omit<
+          Database["public"]["Tables"]["notes"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["notes"]["Insert"]>;
       };
       app_settings: {
@@ -113,6 +128,26 @@ export interface Database {
         };
         Insert: { key: string; value: Json; updated_at?: string };
         Update: Partial<{ value: Json; updated_at: string }>;
+      };
+      sliders: {
+        Row: {
+          id: string;
+          image: string;
+          title: string | null;
+          subtitle: string | null;
+          button_text: string | null;
+          button_link: string | null;
+          has_button: boolean;
+          is_active: boolean;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["sliders"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
+        Update: Partial<Database["public"]["Tables"]["sliders"]["Insert"]>;
       };
       users: {
         Row: {
@@ -126,7 +161,9 @@ export interface Database {
           purchased_videos: string[];
           created_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["users"]["Row"], "id" | "created_at"> & { id?: string };
+        Insert: Omit<Database["public"]["Tables"]["users"]["Row"], "id" | "created_at"> & {
+          id?: string;
+        };
         Update: Partial<Database["public"]["Tables"]["users"]["Insert"]>;
       };
     };

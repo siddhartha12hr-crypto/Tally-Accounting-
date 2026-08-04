@@ -217,7 +217,7 @@ function SignupPage() {
               <div className="relative mt-1.5">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input value={fullName} onChange={e => setFullName(e.target.value)}
-                  placeholder="John Doe" className="pl-10 rounded-xl" disabled={isLoading} />
+                  placeholder="Gareema" className="pl-10 rounded-xl" disabled={isLoading} />
               </div>
             </div>
 
@@ -227,7 +227,7 @@ function SignupPage() {
               <div className="relative mt-1.5">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold">@</span>
                 <Input value={username} onChange={e => setUsername(e.target.value)}
-                  placeholder="johndoe" className="pl-8 rounded-xl" disabled={isLoading}
+                  placeholder="gareema" className="pl-8 rounded-xl" disabled={isLoading}
                   autoComplete="off" />
               </div>
             </div>

@@ -1,12 +1,9 @@
 import { motion } from "framer-motion";
-import {
-  TrendingUp, Users, Trophy,
-  Film, GraduationCap, Eye, FileText,
-} from "lucide-react";
+import { TrendingUp, Users, Film, GraduationCap, FileText, Images } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 
 export function AdminDashboard() {
-  const { videos, courses, movies, sports, notes, isLoading } = useData();
+  const { videos, courses, movies, notes, sliders, isLoading } = useData();
 
   const stats = [
     {
@@ -14,7 +11,7 @@ export function AdminDashboard() {
       value: courses.length,
       icon: GraduationCap,
       color: "gradient-gold",
-      sub: `${courses.filter(c => c.price === "Free").length} free`,
+      sub: `${courses.filter((c) => c.price === "Free").length} free`,
     },
     {
       label: "Movies",
@@ -24,25 +21,23 @@ export function AdminDashboard() {
       sub: "in library",
     },
     {
-      label: "Live Sports",
-      value: sports.filter(s => s.isLive).length,
-      icon: Trophy,
+      label: "Sliders",
+      value: sliders.filter((s) => s.isActive).length,
+      icon: Images,
       color: "gradient-hero",
-      sub: `${sports.length} total`,
+      sub: `${sliders.length} total`,
     },
     {
       label: "Notes",
-      value: notes.filter(n => n.status === "published").length,
+      value: notes.filter((n) => n.status === "published").length,
       icon: FileText,
       color: "gradient-royal",
-      sub: `${notes.filter(n => n.status === "draft").length} drafts`,
+      sub: `${notes.filter((n) => n.status === "draft").length} drafts`,
     },
   ];
 
   /* ── Top content by views ── */
-  const topVideos = [...videos]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .slice(0, 5);
+  const topVideos = [...videos].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
 
   /* ── Recent notes ── */
   const recentNotes = [...notes]
@@ -51,12 +46,11 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-5">
-
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
-          const display = stat.format ? stat.format(stat.value) : stat.value.toLocaleString();
+          const display = stat.value.toLocaleString();
           return (
             <motion.div
               key={stat.label}
@@ -66,7 +60,9 @@ export function AdminDashboard() {
               className="rounded-2xl glass p-4 shadow-card"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className={`h-10 w-10 rounded-xl ${stat.color} grid place-items-center shadow-glow`}>
+                <div
+                  className={`h-10 w-10 rounded-xl ${stat.color} grid place-items-center shadow-glow`}
+                >
                   <Icon className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -92,10 +88,15 @@ export function AdminDashboard() {
           </h3>
           <div className="space-y-2">
             {topVideos.map((v, i) => (
-              <div key={v.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent/30 transition-colors">
+              <div
+                key={v.id}
+                className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent/30 transition-colors"
+              >
                 <span className="text-xs font-black text-muted-foreground w-4">{i + 1}</span>
                 <div className="h-9 w-9 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                  {v.thumbnail && <img src={v.thumbnail} alt={v.title} className="h-full w-full object-cover" />}
+                  {v.thumbnail && (
+                    <img src={v.thumbnail} alt={v.title} className="h-full w-full object-cover" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold truncate">{v.title}</p>
@@ -124,17 +125,24 @@ export function AdminDashboard() {
             Recent Notes
           </h3>
           <div className="space-y-2">
-            {recentNotes.map(n => (
-              <div key={n.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent/30 transition-colors">
+            {recentNotes.map((n) => (
+              <div
+                key={n.id}
+                className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent/30 transition-colors"
+              >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold truncate">{n.title}</p>
-                  <p className="text-[10px] text-muted-foreground">{n.category} · {n.difficulty}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {n.category} · {n.difficulty}
+                  </p>
                 </div>
-                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0 ${
-                  n.status === "published"
-                    ? "bg-green-500/15 text-green-600"
-                    : "bg-orange-500/15 text-orange-600"
-                }`}>
+                <span
+                  className={`text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0 ${
+                    n.status === "published"
+                      ? "bg-green-500/15 text-green-600"
+                      : "bg-orange-500/15 text-orange-600"
+                  }`}
+                >
                   {n.status === "published" ? "● Live" : "○ Draft"}
                 </span>
               </div>

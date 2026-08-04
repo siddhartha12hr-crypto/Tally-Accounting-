@@ -371,22 +371,21 @@ function CourseForm({
   onSubmit: () => void;
   onCancel: () => void;
 }) {
-  const handleVideoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleThumbFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("video/")) {
-      toast.error("Please choose a video file");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error("Choose a video file smaller than 3 MB for local storage");
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error("Choose an image smaller than 1 MB");
       event.target.value = "";
       return;
     }
-
     const reader = new FileReader();
-    reader.onload = () => setFormData({ ...formData, videoUrl: String(reader.result) });
-    reader.onerror = () => toast.error("The course video could not be read");
+    reader.onload = () => setFormData({ ...formData, thumbnail: String(reader.result) });
+    reader.onerror = () => toast.error("The image could not be read");
     reader.readAsDataURL(file);
   };
 
@@ -542,19 +541,20 @@ function CourseForm({
           className="mt-1.5 rounded-xl"
           placeholder="https://..."
         />
-      </div>
-      <div>
-        <Label htmlFor="course-video">Course Video</Label>
+        <p className="mt-1.5 text-xs text-muted-foreground">Paste a URL or upload an image below.</p>
         <Input
-          id="course-video"
+          id="thumbnail-file"
           type="file"
-          accept="video/*"
-          onChange={handleVideoFileChange}
+          accept="image/*"
+          onChange={handleThumbFileChange}
           className="mt-1.5 rounded-xl cursor-pointer file:mr-3 file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-bold file:text-primary"
         />
-        <p className="mt-1.5 text-xs text-muted-foreground">
-          {formData.videoUrl ? "Video attached and ready to save." : "Choose an MP4 or other video file (up to 3 MB)."}
-        </p>
+        {formData.thumbnail && formData.thumbnail.startsWith("data:") && (
+          <div className="mt-2 flex items-center gap-2">
+            <img src={formData.thumbnail} alt="preview" className="h-16 w-16 rounded-lg object-cover" />
+            <span className="text-xs text-green-600 font-bold">Image attached</span>
+          </div>
+        )}
       </div>
       <div className="flex gap-2 pt-2">
         <Button onClick={onSubmit} className="flex-1 rounded-xl gradient-hero text-white shadow-glow">

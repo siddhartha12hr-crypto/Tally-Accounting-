@@ -5,32 +5,49 @@ import { AppShell } from "@/components/AppShell";
 import { PinLock } from "@/components/PinLock";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
-  LayoutDashboard, Trophy, Film,
-  GraduationCap, Settings, FileText, ShieldCheck, Users,
+  LayoutDashboard,
+  Trophy,
+  Film,
+  GraduationCap,
+  Settings,
+  FileText,
+  ShieldCheck,
+  Users,
+  Images,
 } from "lucide-react";
-import { AdminSports }    from "@/components/admin/AdminSports";
-import { AdminMovies }    from "@/components/admin/AdminMovies";
-import { AdminCourses }   from "@/components/admin/AdminCourses";
+import { AdminSports } from "@/components/admin/AdminSports";
+import { AdminMovies } from "@/components/admin/AdminMovies";
+import { AdminCourses } from "@/components/admin/AdminCourses";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { AdminSettings }  from "@/components/admin/AdminSettings";
-import { AdminNotes }     from "@/components/admin/AdminNotes";
-import { AdminUsers }     from "@/components/admin/AdminUsers";
+import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminNotes } from "@/components/admin/AdminNotes";
+import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminSliders } from "@/components/admin/AdminSliders";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Tally Accounting Hub Pro" }] }),
   component: AdminPage,
 });
 
-type TabId = "dashboard" | "users" | "sports" | "movies" | "courses" | "notes" | "settings";
+type TabId =
+  | "dashboard"
+  | "users"
+  | "sports"
+  | "movies"
+  | "courses"
+  | "notes"
+  | "sliders"
+  | "settings";
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "users",     label: "Users",     icon: Users },
-  { id: "courses",   label: "Courses",   icon: GraduationCap },
-  { id: "notes",     label: "Notes",     icon: FileText },
-  { id: "movies",    label: "Movies",    icon: Film },
-  { id: "sports",    label: "Sports",    icon: Trophy },
-  { id: "settings",  label: "Settings",  icon: Settings },
+  { id: "users", label: "Users", icon: Users },
+  { id: "courses", label: "Courses", icon: GraduationCap },
+  { id: "notes", label: "Notes", icon: FileText },
+  { id: "movies", label: "Movies", icon: Film },
+  { id: "sports", label: "Sports", icon: Trophy },
+  { id: "sliders", label: "Sliders", icon: Images },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 function AdminPage() {
@@ -39,7 +56,6 @@ function AdminPage() {
   return (
     <PinLock title="Admin Panel" access="admin">
       <div className="relative min-h-screen overflow-x-hidden pb-28">
-
         {/* Top bar */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
           <div className="mx-auto max-w-2xl px-4 h-16 flex items-center gap-3">
@@ -64,7 +80,9 @@ function AdminPage() {
                   key={id}
                   onClick={() => setTab(id)}
                   className={`relative shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold transition-all duration-200 ${
-                    tab === id ? "text-white shadow-glow" : "text-muted-foreground glass hover:text-foreground"
+                    tab === id
+                      ? "text-white shadow-glow"
+                      : "text-muted-foreground glass hover:text-foreground"
                   }`}
                 >
                   {tab === id && (
@@ -95,12 +113,13 @@ function AdminPage() {
               >
                 <ErrorBoundary key={`eb-${tab}`}>
                   {tab === "dashboard" && <AdminDashboard />}
-                  {tab === "users"     && <AdminUsers />}
-                  {tab === "sports"    && <AdminSports />}
-                  {tab === "movies"    && <AdminMovies />}
-                  {tab === "courses"   && <AdminCourses />}
-                  {tab === "notes"     && <AdminNotes />}
-                  {tab === "settings"  && <AdminSettings />}
+                  {tab === "users" && <AdminUsers />}
+                  {tab === "sports" && <AdminSports />}
+                  {tab === "movies" && <AdminMovies />}
+                  {tab === "courses" && <AdminCourses />}
+                  {tab === "notes" && <AdminNotes />}
+                  {tab === "sliders" && <AdminSliders />}
+                  {tab === "settings" && <AdminSettings />}
                 </ErrorBoundary>
               </motion.div>
             </AnimatePresence>

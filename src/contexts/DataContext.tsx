@@ -9,8 +9,12 @@
  */
 
 import React, {
-  createContext, useContext, useState,
-  useEffect, useCallback, type ReactNode,
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
 } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -88,6 +92,19 @@ export interface Note {
   showInCourses: boolean;
 }
 
+export interface Slide {
+  id: string;
+  image: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  hasButton: boolean;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
+}
+
 /* ─── Stats type (for dashboard) ────────────────────────── */
 export interface AdminStats {
   totalUsers: number;
@@ -96,38 +113,45 @@ export interface AdminStats {
   totalMovies: number;
   totalNotes: number;
   totalSports: number;
+  totalSliders: number;
 }
 
 /* ─── Context type ───────────────────────────────────────── */
 interface DataContextType {
-  courses:   Course[];
-  videos:    Video[];
-  sports:    Sport[];
-  movies:    Movie[];
-  notes:     Note[];
-  stats:     AdminStats;
+  courses: Course[];
+  videos: Video[];
+  sports: Sport[];
+  movies: Movie[];
+  notes: Note[];
+  sliders: Slide[];
+  stats: AdminStats;
   isLoading: boolean;
 
   // Courses
-  addCourse:    (course: Omit<Course, "id">) => Promise<void>;
+  addCourse: (course: Omit<Course, "id">) => Promise<void>;
   updateCourse: (id: string, data: Partial<Course>) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;
   // Videos
-  addVideo:    (video: Omit<Video, "id" | "views" | "uploadDate">) => Promise<void>;
+  addVideo: (video: Omit<Video, "id" | "views" | "uploadDate">) => Promise<void>;
   updateVideo: (id: string, data: Partial<Video>) => Promise<void>;
   deleteVideo: (id: string) => Promise<void>;
   // Sports
-  addSport:    (sport: Omit<Sport, "id">) => Promise<void>;
+  addSport: (sport: Omit<Sport, "id">) => Promise<void>;
   updateSport: (id: string, data: Partial<Sport>) => Promise<void>;
   deleteSport: (id: string) => Promise<void>;
   // Movies
-  addMovie:    (movie: Omit<Movie, "id">) => Promise<void>;
+  addMovie: (movie: Omit<Movie, "id">) => Promise<void>;
   updateMovie: (id: string, data: Partial<Movie>) => Promise<void>;
   deleteMovie: (id: string) => Promise<void>;
   // Notes
-  addNote:    (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => Promise<void>;
   updateNote: (id: string, data: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  // Sliders
+  addSlide: (slide: Omit<Slide, "id" | "createdAt">) => Promise<void>;
+  updateSlide: (id: string, data: Partial<Slide>) => Promise<void>;
+  deleteSlide: (id: string) => Promise<void>;
+  reorderSlides: (orderedIds: string[]) => Promise<void>;
   // Refresh
   refresh: () => Promise<void>;
 }
@@ -135,72 +159,120 @@ interface DataContextType {
 /* ─── localStorage helpers ───────────────────────────────── */
 const KEYS = {
   COURSES: "tally_courses",
-  VIDEOS:  "tally_videos",
-  SPORTS:  "tally_sports",
-  MOVIES:  "tally_movies",
-  NOTES:   "tally_notes",
+  VIDEOS: "tally_videos",
+  SPORTS: "tally_sports",
+  MOVIES: "tally_movies",
+  NOTES: "tally_notes",
+  SLIDERS: "tally_sliders",
 };
 
 function load<T>(key: string, fallback: T): T {
   try {
     const v = typeof localStorage !== "undefined" && localStorage.getItem(key);
     return v ? (JSON.parse(v) as T) : fallback;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 function save<T>(key: string, value: T) {
-  try { if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(value)); }
-  catch { /* quota exceeded — ignore */ }
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* quota exceeded — ignore */
+  }
 }
 
 /* ─── Supabase row ↔ App model mappers ───────────────────── */
 function dbVideo(r: any): Video {
   return {
-    id: r.id, title: r.title, description: r.description ?? "",
-    category: r.category, duration: r.duration ?? "—",
-    url: r.url, thumbnail: r.thumbnail ?? "",
-    views: r.views ?? 0, uploadDate: r.upload_date ?? "",
+    id: r.id,
+    title: r.title,
+    description: r.description ?? "",
+    category: r.category,
+    duration: r.duration ?? "—",
+    url: r.url,
+    thumbnail: r.thumbnail ?? "",
+    views: r.views ?? 0,
+    uploadDate: r.upload_date ?? "",
     price: r.price ?? "Free",
   };
 }
 function dbCourse(r: any): Course {
   return {
-    id: r.id, title: r.title, instructor: r.instructor,
-    description: r.description ?? "", duration: r.duration ?? "—",
-    lessons: r.lessons ?? 0, rating: r.rating ?? 0,
-    students: r.students ?? "0", thumbnail: r.thumbnail ?? "",
-    category: r.category, price: r.price ?? "Free", videoUrl: r.video_url ?? "",
+    id: r.id,
+    title: r.title,
+    instructor: r.instructor,
+    description: r.description ?? "",
+    duration: r.duration ?? "—",
+    lessons: r.lessons ?? 0,
+    rating: r.rating ?? 0,
+    students: r.students ?? "0",
+    thumbnail: r.thumbnail ?? "",
+    category: r.category,
+    price: r.price ?? "Free",
+    videoUrl: r.video_url ?? "",
   };
 }
 function dbMovie(r: any): Movie {
   return {
-    id: r.id, title: r.title, description: r.description ?? "",
-    year: r.year ?? "", duration: r.duration ?? "",
-    genre: r.genre, rating: r.rating ?? 0,
+    id: r.id,
+    title: r.title,
+    description: r.description ?? "",
+    year: r.year ?? "",
+    duration: r.duration ?? "",
+    genre: r.genre,
+    rating: r.rating ?? 0,
     thumbnail: r.poster ?? r.thumbnail ?? "",
-    videoUrl: r.video_url ?? "", language: r.language ?? "",
-    director: r.director, cast: r.cast,
+    videoUrl: r.video_url ?? "",
+    language: r.language ?? "",
+    director: r.director,
+    cast: r.cast,
   };
 }
 function dbSport(r: any): Sport {
   return {
-    id: r.id, sport: r.sport,
-    teamA: r.team_a, teamB: r.team_b,
-    scoreA: r.score_a ?? "—", scoreB: r.score_b ?? "—",
-    status: r.status, isLive: r.is_live ?? false,
+    id: r.id,
+    sport: r.sport,
+    teamA: r.team_a,
+    teamB: r.team_b,
+    scoreA: r.score_a ?? "—",
+    scoreB: r.score_b ?? "—",
+    status: r.status,
+    isLive: r.is_live ?? false,
     extraInfo: r.extra_info,
   };
 }
 function dbNote(r: any): Note {
   return {
-    id: r.id, title: r.title, description: r.description ?? "",
-    category: r.category, thumbnailUrl: r.thumbnail_url ?? "",
-    pdfUrl: r.pdf_url, tags: r.tags ?? [],
+    id: r.id,
+    title: r.title,
+    description: r.description ?? "",
+    category: r.category,
+    thumbnailUrl: r.thumbnail_url ?? "",
+    pdfUrl: r.pdf_url,
+    tags: r.tags ?? [],
     difficulty: r.difficulty ?? "Beginner",
     readingTime: r.reading_time ?? "—",
-    pageCount: r.page_count ?? 0, author: r.author ?? "",
-    createdAt: r.created_at, updatedAt: r.updated_at,
+    pageCount: r.page_count ?? 0,
+    author: r.author ?? "",
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
     status: r.status ?? "draft",
     showInCourses: r.show_in_courses ?? false,
+  };
+}
+function dbSlide(r: any): Slide {
+  return {
+    id: r.id,
+    image: r.image,
+    title: r.title ?? "",
+    subtitle: r.subtitle ?? "",
+    buttonText: r.button_text ?? "",
+    buttonLink: r.button_link ?? "",
+    hasButton: r.has_button ?? false,
+    isActive: r.is_active ?? true,
+    order: r.position ?? 0,
+    createdAt: r.created_at ?? "",
   };
 }
 
@@ -214,32 +286,33 @@ function loadSync<T>(key: string, fallback: T): T {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [courses,   setCourses]   = useState<Course[]>(() => loadSync(KEYS.COURSES, [] as Course[]));
-  const [videos,    setVideos]    = useState<Video[]>(() => loadSync(KEYS.VIDEOS,  [] as Video[]));
-  const [sports,    setSports]    = useState<Sport[]>(() => loadSync(KEYS.SPORTS,  [] as Sport[]));
-  const [movies,    setMovies]    = useState<Movie[]>(() => loadSync(KEYS.MOVIES,  [] as Movie[]));
-  const [notes,     setNotes]     = useState<Note[]>(() => loadSync(KEYS.NOTES,   [] as Note[]));
+  const [courses, setCourses] = useState<Course[]>(() => loadSync(KEYS.COURSES, [] as Course[]));
+  const [videos, setVideos] = useState<Video[]>(() => loadSync(KEYS.VIDEOS, [] as Video[]));
+  const [sports, setSports] = useState<Sport[]>(() => loadSync(KEYS.SPORTS, [] as Sport[]));
+  const [movies, setMovies] = useState<Movie[]>(() => loadSync(KEYS.MOVIES, [] as Movie[]));
+  const [notes, setNotes] = useState<Note[]>(() => loadSync(KEYS.NOTES, [] as Note[]));
+  const [sliders, setSliders] = useState<Slide[]>(() => loadSync(KEYS.SLIDERS, [] as Slide[]));
   const [isLoading, setIsLoading] = useState(false);
 
   /* ── Re-hydrate from localStorage after SSR mount ── */
   useEffect(() => {
-    if (isSupabaseConfigured) return;
-    setCourses(prev => prev.length ? prev : load(KEYS.COURSES, [] as Course[]));
-    setVideos(prev  => prev.length ? prev : load(KEYS.VIDEOS,  [] as Video[]));
-    setSports(prev  => prev.length ? prev : load(KEYS.SPORTS,  [] as Sport[]));
-    setMovies(prev  => prev.length ? prev : load(KEYS.MOVIES,  [] as Movie[]));
-    setNotes(prev   => prev.length ? prev : load(KEYS.NOTES,   [] as Note[]));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setCourses((prev) => (prev.length ? prev : load(KEYS.COURSES, [] as Course[])));
+    setVideos((prev) => (prev.length ? prev : load(KEYS.VIDEOS, [] as Video[])));
+    setSports((prev) => (prev.length ? prev : load(KEYS.SPORTS, [] as Sport[])));
+    setMovies((prev) => (prev.length ? prev : load(KEYS.MOVIES, [] as Movie[])));
+    setNotes((prev) => (prev.length ? prev : load(KEYS.NOTES, [] as Note[])));
+    setSliders((prev) => (prev.length ? prev : load(KEYS.SLIDERS, [] as Slide[])));
   }, []);
 
   /* ── Derived stats ── */
   const stats: AdminStats = {
-    totalUsers:   0,        // fetched separately if needed
-    totalVideos:  videos.length,
+    totalUsers: 0, // fetched separately if needed
+    totalVideos: videos.length,
     totalCourses: courses.length,
-    totalMovies:  movies.length,
-    totalNotes:   notes.length,
-    totalSports:  sports.length,
+    totalMovies: movies.length,
+    totalNotes: notes.length,
+    totalSports: sports.length,
+    totalSliders: sliders.length,
   };
 
   /* ── Supabase fetch ── */
@@ -247,32 +320,76 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
     setIsLoading(true);
     try {
-      const [vRes, cRes, mRes, sRes, nRes] = await Promise.all([
+      const [vRes, cRes, mRes, sRes, nRes, slRes] = await Promise.all([
         supabase.from("videos").select("*").order("created_at", { ascending: false }),
         supabase.from("courses").select("*").order("created_at", { ascending: false }),
         supabase.from("movies").select("*").order("created_at", { ascending: false }),
         supabase.from("sports").select("*").order("created_at", { ascending: false }),
         supabase.from("notes").select("*").order("created_at", { ascending: false }),
+        supabase.from("sliders").select("*").order("position", { ascending: true }),
       ]);
 
-      if (vRes.data) { const d = vRes.data.map(dbVideo);  setVideos(d);  save(KEYS.VIDEOS,  d); }
-      if (cRes.data) { const d = cRes.data.map(dbCourse); setCourses(d); save(KEYS.COURSES, d); }
-      if (mRes.data) { const d = mRes.data.map(dbMovie);  setMovies(d);  save(KEYS.MOVIES,  d); }
-      if (sRes.data) { const d = sRes.data.map(dbSport);  setSports(d);  save(KEYS.SPORTS,  d); }
-      if (nRes.data) { const d = nRes.data.map(dbNote);   setNotes(d);   save(KEYS.NOTES,   d); }
-    } catch (e) { console.error("Supabase fetch error:", e); }
-    finally { setIsLoading(false); }
+      if (vRes.data && vRes.data.length > 0) {
+        const d = vRes.data.map(dbVideo);
+        setVideos(d);
+        save(KEYS.VIDEOS, d);
+      }
+      if (cRes.data && cRes.data.length > 0) {
+        const d = cRes.data.map(dbCourse);
+        setCourses(d);
+        save(KEYS.COURSES, d);
+      }
+      if (mRes.data && mRes.data.length > 0) {
+        const d = mRes.data.map(dbMovie);
+        setMovies(d);
+        save(KEYS.MOVIES, d);
+      }
+      if (sRes.data && sRes.data.length > 0) {
+        const d = sRes.data.map(dbSport);
+        setSports(d);
+        save(KEYS.SPORTS, d);
+      }
+      if (nRes.data && nRes.data.length > 0) {
+        const d = nRes.data.map(dbNote);
+        setNotes(d);
+        save(KEYS.NOTES, d);
+      }
+      if (slRes.data && slRes.data.length > 0) {
+        const d = slRes.data.map(dbSlide);
+        setSliders(d);
+        save(KEYS.SLIDERS, d);
+      }
+    } catch (e) {
+      console.error("Supabase fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  /* ── localStorage sync (offline) ── */
-  useEffect(() => { if (!isSupabaseConfigured) { save(KEYS.COURSES, courses); } }, [courses]);
-  useEffect(() => { if (!isSupabaseConfigured) { save(KEYS.VIDEOS,  videos);  } }, [videos]);
-  useEffect(() => { if (!isSupabaseConfigured) { save(KEYS.SPORTS,  sports);  } }, [sports]);
-  useEffect(() => { if (!isSupabaseConfigured) { save(KEYS.MOVIES,  movies);  } }, [movies]);
-  useEffect(() => { if (!isSupabaseConfigured) { save(KEYS.NOTES,   notes);   } }, [notes]);
+  /* ── localStorage sync (always — backup regardless of Supabase) ── */
+  useEffect(() => {
+    save(KEYS.COURSES, courses);
+  }, [courses]);
+  useEffect(() => {
+    save(KEYS.VIDEOS, videos);
+  }, [videos]);
+  useEffect(() => {
+    save(KEYS.SPORTS, sports);
+  }, [sports]);
+  useEffect(() => {
+    save(KEYS.MOVIES, movies);
+  }, [movies]);
+  useEffect(() => {
+    save(KEYS.NOTES, notes);
+  }, [notes]);
+  useEffect(() => {
+    save(KEYS.SLIDERS, sliders);
+  }, [sliders]);
 
   /* ── On mount: fetch from Supabase if configured ── */
-  useEffect(() => { if (isSupabaseConfigured) fetchFromSupabase(); }, [fetchFromSupabase]);
+  useEffect(() => {
+    if (isSupabaseConfigured) fetchFromSupabase();
+  }, [fetchFromSupabase]);
 
   const refresh = fetchFromSupabase;
 
@@ -283,238 +400,463 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ── Courses ─────────────────────────────────────────────
   const addCourse = async (data: Omit<Course, "id">) => {
     if (supabase) {
-      const { data: row, error } = await supabase.from("courses").insert({
-        title: data.title, instructor: data.instructor,
-        description: data.description, duration: data.duration,
-        lessons: data.lessons, rating: data.rating,
-        students: data.students, thumbnail: data.thumbnail,
-        category: data.category, price: data.price, video_url: data.videoUrl ?? null,
-      }).select().single();
-      if (!error && row) { setCourses(p => [dbCourse(row), ...p]); return; }
+      const { data: row, error } = await supabase
+        .from("courses")
+        .insert({
+          title: data.title,
+          instructor: data.instructor,
+          description: data.description,
+          duration: data.duration,
+          lessons: data.lessons,
+          rating: data.rating,
+          students: data.students,
+          thumbnail: data.thumbnail,
+          category: data.category,
+          price: data.price,
+          video_url: data.videoUrl ?? null,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setCourses((p) => [dbCourse(row), ...p]);
+        return;
+      }
       console.error("Supabase addCourse:", error);
     }
     const item: Course = { id: Date.now().toString(), ...data };
-    setCourses(p => [item, ...p]);
+    setCourses((p) => [item, ...p]);
   };
 
   const updateCourse = async (id: string, data: Partial<Course>) => {
     if (supabase) {
-      const { error } = await supabase.from("courses").update({
-        ...(data.title        && { title:       data.title }),
-        ...(data.instructor   && { instructor:  data.instructor }),
-        ...(data.description  !== undefined && { description: data.description }),
-        ...(data.duration     && { duration:    data.duration }),
-        ...(data.lessons      !== undefined && { lessons:     data.lessons }),
-        ...(data.rating       !== undefined && { rating:      data.rating }),
-        ...(data.students     && { students:    data.students }),
-        ...(data.thumbnail    && { thumbnail:   data.thumbnail }),
-        ...(data.category     && { category:    data.category }),
-        ...(data.price        && { price:       data.price }),
-        ...(data.videoUrl     !== undefined && { video_url:   data.videoUrl }),
-      }).eq("id", id);
-      if (!error) { setCourses(p => p.map(c => c.id === id ? { ...c, ...data } : c)); return; }
+      const { error } = await supabase
+        .from("courses")
+        .update({
+          ...(data.title && { title: data.title }),
+          ...(data.instructor && { instructor: data.instructor }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.duration && { duration: data.duration }),
+          ...(data.lessons !== undefined && { lessons: data.lessons }),
+          ...(data.rating !== undefined && { rating: data.rating }),
+          ...(data.students && { students: data.students }),
+          ...(data.thumbnail && { thumbnail: data.thumbnail }),
+          ...(data.category && { category: data.category }),
+          ...(data.price && { price: data.price }),
+          ...(data.videoUrl !== undefined && { video_url: data.videoUrl }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setCourses((p) => p.map((c) => (c.id === id ? { ...c, ...data } : c)));
+        return;
+      }
       console.error("Supabase updateCourse:", error);
     }
-    setCourses(p => p.map(c => c.id === id ? { ...c, ...data } : c));
+    setCourses((p) => p.map((c) => (c.id === id ? { ...c, ...data } : c)));
   };
 
   const deleteCourse = async (id: string) => {
     if (supabase) {
       const { error } = await supabase.from("courses").delete().eq("id", id);
-      if (!error) { setCourses(p => p.filter(c => c.id !== id)); return; }
+      if (!error) {
+        setCourses((p) => p.filter((c) => c.id !== id));
+        return;
+      }
       console.error("Supabase deleteCourse:", error);
     }
-    setCourses(p => p.filter(c => c.id !== id));
+    setCourses((p) => p.filter((c) => c.id !== id));
   };
 
   // ── Videos ──────────────────────────────────────────────
   const addVideo = async (data: Omit<Video, "id" | "views" | "uploadDate">) => {
     if (supabase) {
-      const { data: row, error } = await supabase.from("videos").insert({
-        title: data.title, description: data.description,
-        category: data.category, duration: data.duration,
-        url: data.url, thumbnail: data.thumbnail, price: data.price,
-      }).select().single();
-      if (!error && row) { setVideos(p => [dbVideo(row), ...p]); return; }
+      const { data: row, error } = await supabase
+        .from("videos")
+        .insert({
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          duration: data.duration,
+          url: data.url,
+          thumbnail: data.thumbnail,
+          price: data.price,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setVideos((p) => [dbVideo(row), ...p]);
+        return;
+      }
       console.error("Supabase addVideo:", error);
     }
-    const item: Video = { id: Date.now().toString(), views: 0, uploadDate: new Date().toISOString().split("T")[0], ...data };
-    setVideos(p => [item, ...p]);
+    const item: Video = {
+      id: Date.now().toString(),
+      views: 0,
+      uploadDate: new Date().toISOString().split("T")[0],
+      ...data,
+    };
+    setVideos((p) => [item, ...p]);
   };
 
   const updateVideo = async (id: string, data: Partial<Video>) => {
     if (supabase) {
-      const { error } = await supabase.from("videos").update({
-        ...(data.title       && { title:      data.title }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(data.category    && { category:   data.category }),
-        ...(data.duration    && { duration:   data.duration }),
-        ...(data.url         && { url:        data.url }),
-        ...(data.thumbnail   && { thumbnail:  data.thumbnail }),
-        ...(data.price       && { price:      data.price }),
-      }).eq("id", id);
-      if (!error) { setVideos(p => p.map(v => v.id === id ? { ...v, ...data } : v)); return; }
+      const { error } = await supabase
+        .from("videos")
+        .update({
+          ...(data.title && { title: data.title }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.category && { category: data.category }),
+          ...(data.duration && { duration: data.duration }),
+          ...(data.url && { url: data.url }),
+          ...(data.thumbnail && { thumbnail: data.thumbnail }),
+          ...(data.price && { price: data.price }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setVideos((p) => p.map((v) => (v.id === id ? { ...v, ...data } : v)));
+        return;
+      }
       console.error("Supabase updateVideo:", error);
     }
-    setVideos(p => p.map(v => v.id === id ? { ...v, ...data } : v));
+    setVideos((p) => p.map((v) => (v.id === id ? { ...v, ...data } : v)));
   };
 
   const deleteVideo = async (id: string) => {
     if (supabase) {
       const { error } = await supabase.from("videos").delete().eq("id", id);
-      if (!error) { setVideos(p => p.filter(v => v.id !== id)); return; }
+      if (!error) {
+        setVideos((p) => p.filter((v) => v.id !== id));
+        return;
+      }
       console.error("Supabase deleteVideo:", error);
     }
-    setVideos(p => p.filter(v => v.id !== id));
+    setVideos((p) => p.filter((v) => v.id !== id));
   };
 
   // ── Sports ──────────────────────────────────────────────
   const addSport = async (data: Omit<Sport, "id">) => {
     if (supabase) {
-      const { data: row, error } = await supabase.from("sports").insert({
-        sport: data.sport, team_a: data.teamA, team_b: data.teamB,
-        score_a: data.scoreA, score_b: data.scoreB,
-        status: data.status, is_live: data.isLive, extra_info: data.extraInfo,
-      }).select().single();
-      if (!error && row) { setSports(p => [dbSport(row), ...p]); return; }
+      const { data: row, error } = await supabase
+        .from("sports")
+        .insert({
+          sport: data.sport,
+          team_a: data.teamA,
+          team_b: data.teamB,
+          score_a: data.scoreA,
+          score_b: data.scoreB,
+          status: data.status,
+          is_live: data.isLive,
+          extra_info: data.extraInfo,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setSports((p) => [dbSport(row), ...p]);
+        return;
+      }
       console.error("Supabase addSport:", error);
     }
     const item: Sport = { id: Date.now().toString(), ...data };
-    setSports(p => [item, ...p]);
+    setSports((p) => [item, ...p]);
   };
 
   const updateSport = async (id: string, data: Partial<Sport>) => {
     if (supabase) {
-      const { error } = await supabase.from("sports").update({
-        ...(data.sport      && { sport:      data.sport }),
-        ...(data.teamA      && { team_a:     data.teamA }),
-        ...(data.teamB      && { team_b:     data.teamB }),
-        ...(data.scoreA     !== undefined && { score_a: data.scoreA }),
-        ...(data.scoreB     !== undefined && { score_b: data.scoreB }),
-        ...(data.status     && { status:     data.status }),
-        ...(data.isLive     !== undefined && { is_live: data.isLive }),
-        ...(data.extraInfo  !== undefined && { extra_info: data.extraInfo }),
-      }).eq("id", id);
-      if (!error) { setSports(p => p.map(s => s.id === id ? { ...s, ...data } : s)); return; }
+      const { error } = await supabase
+        .from("sports")
+        .update({
+          ...(data.sport && { sport: data.sport }),
+          ...(data.teamA && { team_a: data.teamA }),
+          ...(data.teamB && { team_b: data.teamB }),
+          ...(data.scoreA !== undefined && { score_a: data.scoreA }),
+          ...(data.scoreB !== undefined && { score_b: data.scoreB }),
+          ...(data.status && { status: data.status }),
+          ...(data.isLive !== undefined && { is_live: data.isLive }),
+          ...(data.extraInfo !== undefined && { extra_info: data.extraInfo }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setSports((p) => p.map((s) => (s.id === id ? { ...s, ...data } : s)));
+        return;
+      }
       console.error("Supabase updateSport:", error);
     }
-    setSports(p => p.map(s => s.id === id ? { ...s, ...data } : s));
+    setSports((p) => p.map((s) => (s.id === id ? { ...s, ...data } : s)));
   };
 
   const deleteSport = async (id: string) => {
     if (supabase) {
       const { error } = await supabase.from("sports").delete().eq("id", id);
-      if (!error) { setSports(p => p.filter(s => s.id !== id)); return; }
+      if (!error) {
+        setSports((p) => p.filter((s) => s.id !== id));
+        return;
+      }
       console.error("Supabase deleteSport:", error);
     }
-    setSports(p => p.filter(s => s.id !== id));
+    setSports((p) => p.filter((s) => s.id !== id));
   };
 
   // ── Movies ──────────────────────────────────────────────
   const addMovie = async (data: Omit<Movie, "id">) => {
     if (supabase) {
-      const { data: row, error } = await supabase.from("movies").insert({
-        title: data.title, description: data.description,
-        genre: data.genre, rating: data.rating, year: data.year,
-        duration: data.duration, language: data.language,
-        director: data.director, cast: data.cast,
-        poster: data.thumbnail, video_url: data.videoUrl,
-      }).select().single();
-      if (!error && row) { setMovies(p => [dbMovie(row), ...p]); return; }
+      const { data: row, error } = await supabase
+        .from("movies")
+        .insert({
+          title: data.title,
+          description: data.description,
+          genre: data.genre,
+          rating: data.rating,
+          year: data.year,
+          duration: data.duration,
+          language: data.language,
+          director: data.director,
+          cast: data.cast,
+          poster: data.thumbnail,
+          video_url: data.videoUrl,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setMovies((p) => [dbMovie(row), ...p]);
+        return;
+      }
       console.error("Supabase addMovie:", error);
     }
     const item: Movie = { id: Date.now().toString(), ...data };
-    setMovies(p => [item, ...p]);
+    setMovies((p) => [item, ...p]);
   };
 
   const updateMovie = async (id: string, data: Partial<Movie>) => {
     if (supabase) {
-      const { error } = await supabase.from("movies").update({
-        ...(data.title        && { title:      data.title }),
-        ...(data.description  !== undefined && { description: data.description }),
-        ...(data.genre        && { genre:      data.genre }),
-        ...(data.rating       !== undefined && { rating:      data.rating }),
-        ...(data.year         && { year:       data.year }),
-        ...(data.duration     && { duration:   data.duration }),
-        ...(data.language     && { language:   data.language }),
-        ...(data.director     && { director:   data.director }),
-        ...(data.cast         && { cast:       data.cast }),
-        ...(data.thumbnail    && { poster:     data.thumbnail }),
-        ...(data.videoUrl     && { video_url:  data.videoUrl }),
-      }).eq("id", id);
-      if (!error) { setMovies(p => p.map(m => m.id === id ? { ...m, ...data } : m)); return; }
+      const { error } = await supabase
+        .from("movies")
+        .update({
+          ...(data.title && { title: data.title }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.genre && { genre: data.genre }),
+          ...(data.rating !== undefined && { rating: data.rating }),
+          ...(data.year && { year: data.year }),
+          ...(data.duration && { duration: data.duration }),
+          ...(data.language && { language: data.language }),
+          ...(data.director && { director: data.director }),
+          ...(data.cast && { cast: data.cast }),
+          ...(data.thumbnail && { poster: data.thumbnail }),
+          ...(data.videoUrl && { video_url: data.videoUrl }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setMovies((p) => p.map((m) => (m.id === id ? { ...m, ...data } : m)));
+        return;
+      }
       console.error("Supabase updateMovie:", error);
     }
-    setMovies(p => p.map(m => m.id === id ? { ...m, ...data } : m));
+    setMovies((p) => p.map((m) => (m.id === id ? { ...m, ...data } : m)));
   };
 
   const deleteMovie = async (id: string) => {
     if (supabase) {
       const { error } = await supabase.from("movies").delete().eq("id", id);
-      if (!error) { setMovies(p => p.filter(m => m.id !== id)); return; }
+      if (!error) {
+        setMovies((p) => p.filter((m) => m.id !== id));
+        return;
+      }
       console.error("Supabase deleteMovie:", error);
     }
-    setMovies(p => p.filter(m => m.id !== id));
+    setMovies((p) => p.filter((m) => m.id !== id));
   };
 
   // ── Notes ───────────────────────────────────────────────
   const addNote = async (data: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
     if (supabase) {
-      const { data: row, error } = await supabase.from("notes").insert({
-        title: data.title, description: data.description,
-        category: data.category, thumbnail_url: data.thumbnailUrl,
-        pdf_url: data.pdfUrl, tags: data.tags,
-        difficulty: data.difficulty, reading_time: data.readingTime,
-        page_count: data.pageCount, author: data.author, status: data.status,
-        show_in_courses: data.showInCourses ?? false,
-      }).select().single();
-      if (!error && row) { setNotes(p => [dbNote(row), ...p]); return; }
+      const { data: row, error } = await supabase
+        .from("notes")
+        .insert({
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          thumbnail_url: data.thumbnailUrl,
+          pdf_url: data.pdfUrl,
+          tags: data.tags,
+          difficulty: data.difficulty,
+          reading_time: data.readingTime,
+          page_count: data.pageCount,
+          author: data.author,
+          status: data.status,
+          show_in_courses: data.showInCourses ?? false,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setNotes((p) => [dbNote(row), ...p]);
+        return;
+      }
       console.error("Supabase addNote:", error);
     }
     const now = new Date().toISOString();
     const item: Note = { id: Date.now().toString(), createdAt: now, updatedAt: now, ...data };
-    setNotes(p => [item, ...p]);
+    setNotes((p) => [item, ...p]);
   };
 
   const updateNote = async (id: string, data: Partial<Note>) => {
     if (supabase) {
-      const { error } = await supabase.from("notes").update({
-        ...(data.title        && { title:         data.title }),
-        ...(data.description  !== undefined && { description:  data.description }),
-        ...(data.category     && { category:      data.category }),
-        ...(data.thumbnailUrl !== undefined && { thumbnail_url: data.thumbnailUrl }),
-        ...(data.pdfUrl       && { pdf_url:       data.pdfUrl }),
-        ...(data.tags         && { tags:          data.tags }),
-        ...(data.difficulty   && { difficulty:    data.difficulty }),
-        ...(data.readingTime  !== undefined && { reading_time: data.readingTime }),
-        ...(data.pageCount    !== undefined && { page_count:   data.pageCount }),
-        ...(data.author       !== undefined && { author:       data.author }),
-        ...(data.status       && { status:        data.status }),
-      }).eq("id", id);
-      if (!error) { setNotes(p => p.map(n => n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n)); return; }
+      const { error } = await supabase
+        .from("notes")
+        .update({
+          ...(data.title && { title: data.title }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.category && { category: data.category }),
+          ...(data.thumbnailUrl !== undefined && { thumbnail_url: data.thumbnailUrl }),
+          ...(data.pdfUrl && { pdf_url: data.pdfUrl }),
+          ...(data.tags && { tags: data.tags }),
+          ...(data.difficulty && { difficulty: data.difficulty }),
+          ...(data.readingTime !== undefined && { reading_time: data.readingTime }),
+          ...(data.pageCount !== undefined && { page_count: data.pageCount }),
+          ...(data.author !== undefined && { author: data.author }),
+          ...(data.status && { status: data.status }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setNotes((p) =>
+          p.map((n) => (n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n)),
+        );
+        return;
+      }
       console.error("Supabase updateNote:", error);
     }
-    setNotes(p => p.map(n => n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n));
+    setNotes((p) =>
+      p.map((n) => (n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n)),
+    );
   };
 
   const deleteNote = async (id: string) => {
     if (supabase) {
       const { error } = await supabase.from("notes").delete().eq("id", id);
-      if (!error) { setNotes(p => p.filter(n => n.id !== id)); return; }
+      if (!error) {
+        setNotes((p) => p.filter((n) => n.id !== id));
+        return;
+      }
       console.error("Supabase deleteNote:", error);
     }
-    setNotes(p => p.filter(n => n.id !== id));
+    setNotes((p) => p.filter((n) => n.id !== id));
+  };
+
+  // ── Sliders ──────────────────────────────────────────────
+  const addSlide = async (data: Omit<Slide, "id" | "createdAt">) => {
+    if (supabase) {
+      const { data: row, error } = await supabase
+        .from("sliders")
+        .insert({
+          image: data.image,
+          title: data.title,
+          subtitle: data.subtitle,
+          button_text: data.buttonText,
+          button_link: data.buttonLink,
+          has_button: data.hasButton,
+          is_active: data.isActive,
+          position: data.order,
+        })
+        .select()
+        .single();
+      if (!error && row) {
+        setSliders((p) => [...p, dbSlide(row)].sort((a, b) => a.order - b.order));
+        return;
+      }
+      console.error("Supabase addSlide:", error);
+    }
+    const item: Slide = { id: Date.now().toString(), createdAt: new Date().toISOString(), ...data };
+    setSliders((p) => [...p, item].sort((a, b) => a.order - b.order));
+  };
+
+  const updateSlide = async (id: string, data: Partial<Slide>) => {
+    if (supabase) {
+      const { error } = await supabase
+        .from("sliders")
+        .update({
+          ...(data.image !== undefined && { image: data.image }),
+          ...(data.title !== undefined && { title: data.title }),
+          ...(data.subtitle !== undefined && { subtitle: data.subtitle }),
+          ...(data.buttonText !== undefined && { button_text: data.buttonText }),
+          ...(data.buttonLink !== undefined && { button_link: data.buttonLink }),
+          ...(data.hasButton !== undefined && { has_button: data.hasButton }),
+          ...(data.isActive !== undefined && { is_active: data.isActive }),
+          ...(data.order !== undefined && { position: data.order }),
+        })
+        .eq("id", id);
+      if (!error) {
+        setSliders((p) =>
+          p.map((s) => (s.id === id ? { ...s, ...data } : s)).sort((a, b) => a.order - b.order),
+        );
+        return;
+      }
+      console.error("Supabase updateSlide:", error);
+    }
+    setSliders((p) =>
+      p.map((s) => (s.id === id ? { ...s, ...data } : s)).sort((a, b) => a.order - b.order),
+    );
+  };
+
+  const deleteSlide = async (id: string) => {
+    if (supabase) {
+      const { error } = await supabase.from("sliders").delete().eq("id", id);
+      if (!error) {
+        setSliders((p) => p.filter((s) => s.id !== id));
+        return;
+      }
+      console.error("Supabase deleteSlide:", error);
+    }
+    setSliders((p) => p.filter((s) => s.id !== id));
+  };
+
+  const reorderSlides = async (orderedIds: string[]) => {
+    const next = orderedIds
+      .map((id, idx) => ({ id, order: idx + 1 }))
+      .map(({ id, order }) => {
+        const slide = sliders.find((s) => s.id === id);
+        return slide ? { ...slide, order } : null;
+      })
+      .filter((s): s is Slide => s !== null)
+      .sort((a, b) => a.order - b.order);
+    setSliders(next);
+    if (supabase) {
+      const { error } = await supabase
+        .from("sliders")
+        .upsert(next.map((s) => ({ id: s.id, position: s.order })));
+      if (error) console.error("Supabase reorderSlides:", error);
+    }
   };
 
   return (
-    <DataContext.Provider value={{
-      courses, videos, sports, movies, notes, stats, isLoading, refresh,
-      addCourse, updateCourse, deleteCourse,
-      addVideo,  updateVideo,  deleteVideo,
-      addSport,  updateSport,  deleteSport,
-      addMovie,  updateMovie,  deleteMovie,
-      addNote,   updateNote,   deleteNote,
-    }}>
+    <DataContext.Provider
+      value={{
+        courses,
+        videos,
+        sports,
+        movies,
+        notes,
+        sliders,
+        stats,
+        isLoading,
+        refresh,
+        addCourse,
+        updateCourse,
+        deleteCourse,
+        addVideo,
+        updateVideo,
+        deleteVideo,
+        addSport,
+        updateSport,
+        deleteSport,
+        addMovie,
+        updateMovie,
+        deleteMovie,
+        addNote,
+        updateNote,
+        deleteNote,
+        addSlide,
+        updateSlide,
+        deleteSlide,
+        reorderSlides,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
