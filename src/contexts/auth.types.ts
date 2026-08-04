@@ -8,6 +8,9 @@ export interface AuthUser {
   name:              string;
   purchasedCourses:  string[];
   purchasedVideos:   string[];
+  status?:    'active' | 'blocked';
+  lastLogin?: string | null;
+  createdAt?: string;
 }
 
 export interface SignupData {
@@ -16,6 +19,22 @@ export interface SignupData {
   email?:    string;
   phone?:    string;
   password:  string;
+}
+
+export interface AdminUser {
+  id:               string;
+  fullName:         string;
+  username:         string;
+  email:            string | null;
+  phone:            string | null;
+  avatar:           string | null;
+  password:         string;
+  purchasedCourses: string[];
+  purchasedVideos:  string[];
+  status:           'active' | 'blocked';
+  lastLogin:        string | null;
+  blockedAt:        string | null;
+  createdAt:        string;
 }
 
 export interface AuthContextType {
@@ -30,4 +49,11 @@ export interface AuthContextType {
   changePassword:  (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   hasPurchased:    (contentId: string, type: 'course' | 'video') => boolean;
   purchaseContent: (contentId: string, type: 'course' | 'video') => void;
+  // Admin user management
+  getAllUsers:        () => AdminUser[];
+  blockUser:          (userId: string) => void;
+  unblockUser:        (userId: string) => void;
+  deleteUser:         (userId: string) => void;
+  grantCourseAccess:  (userId: string, courseId: string) => void;
+  revokeCourseAccess: (userId: string, courseId: string) => void;
 }

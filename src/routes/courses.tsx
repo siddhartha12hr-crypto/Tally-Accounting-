@@ -129,7 +129,21 @@ function Courses() {
       navigate({ to: `/watch/${courseId}` });
       return;
     }
-    // All courses (free or paid) → show payment/enrollment page first
+    const isFree = price === "Free" || price === "₹0";
+    if (isFree) {
+      // Free course → enroll instantly, no payment page needed
+      purchaseContent(courseId, "course");
+      addNotification({
+        type: "course",
+        title: "Enrolled Successfully! 🎉",
+        body: `You're now enrolled in "${courses.find(c => c.id === courseId)?.title ?? "the course"}". Start learning!`,
+        link: "/learn",
+      });
+      toast.success("Enrolled! Opening course…");
+      setTimeout(() => navigate({ to: `/watch/${courseId}` }), 150);
+      return;
+    }
+    // Paid course → Purchase Course page (WhatsApp + Code)
     navigate({ to: `/payment/${courseId}` });
   };
 

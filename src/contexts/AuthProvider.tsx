@@ -1,5 +1,5 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
-import type { AuthUser, SignupData, AuthContextType } from './auth.types';
+import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import type { AuthUser, SignupData, AuthContextType, AdminUser } from './auth.types';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -139,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       avatar: null,
       purchasedCourses: [],
       purchasedVideos: [],
+      status: 'active' as const,
+      lastLogin: null,
+      blockedAt: null,
       createdAt: new Date().toISOString(),
     };
 
@@ -172,9 +175,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, message: 'Incorrect password' };
     }
 
+    // Block check
+    if (user.status === 'blocked') {
+      return { success: false, message: 'Your account has been blocked. Please contact support.' };
+    }
+
+    // Update last login timestamp
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) {
+      users[idx].lastLogin = new Date().toISOString();
+      users[idx].status = users[idx].status || 'active';
+      saveUsersDB(users);
+    }
+
     // Generate token and persist session
     const token = generateToken(user.id);
-    const authUser = normalise(user);
+    const authUser = normalise({ ...user, lastLogin: users[idx]?.lastLogin });
     persist(authUser, token);
 
     // Save identifier for autocomplete
@@ -256,8 +273,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /* ═══════════════════════════════════════════════════════
+     ADMIN USER MANAGEMENT
+     ═══════════════════════════════════════════════════════ */
+
+  const getAllUsers = useCallback((): AdminUser[] => {
+    return getUsersDB().map(u => ({
+      id:               String(u.id),
+      fullName:         u.fullName  || '',
+      username:         u.username  || '',
+      email:            u.email     || null,
+      phone:            u.phone     || null,
+      avatar:           u.avatar    || null,
+      password:         u.password  || '',
+      purchasedCourses: u.purchasedCourses || [],
+      purchasedVideos:  u.purchasedVideos  || [],
+      status:           u.status    || 'active',
+      lastLogin:        u.lastLogin || null,
+      blockedAt:        u.blockedAt || null,
+      createdAt:        u.createdAt || new Date().toISOString(),
+    }));
+  }, []);
+
+  const blockUser = useCallback((userId: string) => {
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx].status = 'blocked';
+      users[idx].blockedAt = new Date().toISOString();
+      saveUsersDB(users);
+      // Force logout if the blocked user is currently logged in
+      if (user?.id === userId) clear();
+    }
+  }, [user]);
+
+  const unblockUser = useCallback((userId: string) => {
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx].status = 'active';
+      users[idx].blockedAt = null;
+      saveUsersDB(users);
+    }
+  }, []);
+
+  const deleteUser = useCallback((userId: string) => {
+    const users = getUsersDB().filter(u => u.id !== userId);
+    saveUsersDB(users);
+    // Force logout if the deleted user is currently logged in
+    if (user?.id === userId) clear();
+  }, [user]);
+
+  const grantCourseAccess = useCallback((userId: string, courseId: string) => {
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      if (!users[idx].purchasedCourses) users[idx].purchasedCourses = [];
+      if (!users[idx].purchasedCourses.includes(courseId)) {
+        users[idx].purchasedCourses.push(courseId);
+        saveUsersDB(users);
+      }
+      // If granting to the currently logged-in user, update their session too
+      if (user?.id === userId) {
+        const updated = { ...user, purchasedCourses: [...(user.purchasedCourses || []), courseId] };
+        if (token) persist(updated, token);
+      }
+    }
+  }, [user, token]);
+
+  const revokeCourseAccess = useCallback((userId: string, courseId: string) => {
+    const users = getUsersDB();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx].purchasedCourses = (users[idx].purchasedCourses || []).filter((id: string) => id !== courseId);
+      saveUsersDB(users);
+      // If revoking from the currently logged-in user, update their session too
+      if (user?.id === userId) {
+        const updated = { ...user, purchasedCourses: (user.purchasedCourses || []).filter(id => id !== courseId) };
+        if (token) persist(updated, token);
+      }
+    }
+  }, [user, token]);
+
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, signup, login, logout, updateProfile, changePassword, hasPurchased, purchaseContent }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, signup, login, logout, updateProfile, changePassword, hasPurchased, purchaseContent, getAllUsers, blockUser, unblockUser, deleteUser, grantCourseAccess, revokeCourseAccess }}>
       {children}
     </AuthContext.Provider>
   );

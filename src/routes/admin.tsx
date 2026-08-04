@@ -6,7 +6,7 @@ import { PinLock } from "@/components/PinLock";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
   LayoutDashboard, Trophy, Film,
-  GraduationCap, Settings, FileText, ShieldCheck,
+  GraduationCap, Settings, FileText, ShieldCheck, Users,
 } from "lucide-react";
 import { AdminSports }    from "@/components/admin/AdminSports";
 import { AdminMovies }    from "@/components/admin/AdminMovies";
@@ -14,16 +14,18 @@ import { AdminCourses }   from "@/components/admin/AdminCourses";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminSettings }  from "@/components/admin/AdminSettings";
 import { AdminNotes }     from "@/components/admin/AdminNotes";
+import { AdminUsers }     from "@/components/admin/AdminUsers";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Tally Accounting Hub Pro" }] }),
   component: AdminPage,
 });
 
-type TabId = "dashboard" | "sports" | "movies" | "courses" | "notes" | "settings";
+type TabId = "dashboard" | "users" | "sports" | "movies" | "courses" | "notes" | "settings";
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "users",     label: "Users",     icon: Users },
   { id: "courses",   label: "Courses",   icon: GraduationCap },
   { id: "notes",     label: "Notes",     icon: FileText },
   { id: "movies",    label: "Movies",    icon: Film },
@@ -93,6 +95,7 @@ function AdminPage() {
               >
                 <ErrorBoundary key={`eb-${tab}`}>
                   {tab === "dashboard" && <AdminDashboard />}
+                  {tab === "users"     && <AdminUsers />}
                   {tab === "sports"    && <AdminSports />}
                   {tab === "movies"    && <AdminMovies />}
                   {tab === "courses"   && <AdminCourses />}

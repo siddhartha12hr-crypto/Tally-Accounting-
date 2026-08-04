@@ -207,27 +207,28 @@ function dbNote(r: any): Note {
 /* ─── Context ────────────────────────────────────────────── */
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+/* ─── SSR-safe synchronous load ─────────────────────────── */
+function loadSync<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  return load(key, fallback);
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [courses,   setCourses]   = useState<Course[]>([]);
-  const [videos,    setVideos]    = useState<Video[]>([]);
-  const [sports,    setSports]    = useState<Sport[]>([]);
-  const [movies,    setMovies]    = useState<Movie[]>([]);
-  const [notes,     setNotes]     = useState<Note[]>([]);
+  const [courses,   setCourses]   = useState<Course[]>(() => loadSync(KEYS.COURSES, [] as Course[]));
+  const [videos,    setVideos]    = useState<Video[]>(() => loadSync(KEYS.VIDEOS,  [] as Video[]));
+  const [sports,    setSports]    = useState<Sport[]>(() => loadSync(KEYS.SPORTS,  [] as Sport[]));
+  const [movies,    setMovies]    = useState<Movie[]>(() => loadSync(KEYS.MOVIES,  [] as Movie[]));
+  const [notes,     setNotes]     = useState<Note[]>(() => loadSync(KEYS.NOTES,   [] as Note[]));
   const [isLoading, setIsLoading] = useState(false);
 
-  /* ── Load from localStorage on client mount (SSR-safe) ── */
+  /* ── Re-hydrate from localStorage after SSR mount ── */
   useEffect(() => {
-    if (isSupabaseConfigured) return; // Supabase fetch will handle it
-    const c = load(KEYS.COURSES, [] as Course[]);
-    const v = load(KEYS.VIDEOS,  [] as Video[]);
-    const s = load(KEYS.SPORTS,  [] as Sport[]);
-    const m = load(KEYS.MOVIES,  [] as Movie[]);
-    const n = load(KEYS.NOTES,   [] as Note[]);
-    if (c.length) setCourses(c);
-    if (v.length) setVideos(v);
-    if (s.length) setSports(s);
-    if (m.length) setMovies(m);
-    if (n.length) setNotes(n);
+    if (isSupabaseConfigured) return;
+    setCourses(prev => prev.length ? prev : load(KEYS.COURSES, [] as Course[]));
+    setVideos(prev  => prev.length ? prev : load(KEYS.VIDEOS,  [] as Video[]));
+    setSports(prev  => prev.length ? prev : load(KEYS.SPORTS,  [] as Sport[]));
+    setMovies(prev  => prev.length ? prev : load(KEYS.MOVIES,  [] as Movie[]));
+    setNotes(prev   => prev.length ? prev : load(KEYS.NOTES,   [] as Note[]));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
